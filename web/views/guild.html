@@ -3744,6 +3744,33 @@
             if (val) selectVouchEmoji(val);
         }
     </script>
+    <script>
+        // Fix Sidebar Links (Client-side URL hydration)
+        document.addEventListener('DOMContentLoaded', () => {
+            const pathParts = window.location.pathname.split('/');
+            // Expected URL: /bot/:botId/guild/:guildId
+            // pathParts: ["", "bot", "123", "guild", "456"]
+
+            const botId = pathParts[2];
+            const guildId = pathParts[4];
+
+            if (botId && guildId) {
+                document.querySelectorAll('a').forEach(link => {
+                    let href = link.getAttribute('href');
+                    if (href && (href.includes('${bId}') || href.includes('%24%7BbId%7D'))) {
+                        // Replace placeholders
+                        let newHref = href
+                            .replace(/\$\{bId\}/g, botId)
+                            .replace(/\$\{gId\}/g, guildId)
+                            .replace(/%24%7BbId%7D/g, botId)
+                            .replace(/%24%7BgId%7D/g, guildId);
+
+                        link.setAttribute('href', newHref);
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
