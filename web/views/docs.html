@@ -334,7 +334,21 @@
                         <li><code>/ticket close</code> - Close the current ticket.</li>
                         <li><code>/stats</code> - View server analytics and ticket statistics.</li>
                         <li><code>/setup</code> - Run the initial server configuration.</li>
+                        <li><code>/vouch @user [message]</code> - Give a vouch to someone.</li>
+                        <li><code>/help</code> - Show all available commands.</li>
                     </ul>
+
+                    <h3>📋 Examples</h3>
+                    <div class="info-card">
+                        <strong>Adding a user to ticket:</strong>
+                        <pre><code>/ticket add @JohnDoe</code></pre>
+                        <p>This will give @JohnDoe access to read and write in the current ticket channel.</p>
+                    </div>
+                    <div class="info-card">
+                        <strong>Giving a vouch:</strong>
+                        <pre><code>/vouch @Seller Great transaction, fast delivery!</code></pre>
+                        <p>This sends a vouch message to the configured vouch channel.</p>
+                    </div>
                 </div>
                 <!-- ID -->
                 <div data-lang="id">
@@ -347,7 +361,21 @@
                         <li><code>/ticket close</code> - Tutup tiket saat ini.</li>
                         <li><code>/stats</code> - Lihat analitik server dan statistik tiket.</li>
                         <li><code>/setup</code> - Jalankan konfigurasi awal server.</li>
+                        <li><code>/vouch @user [pesan]</code> - Berikan vouch ke seseorang.</li>
+                        <li><code>/help</code> - Tampilkan semua perintah yang tersedia.</li>
                     </ul>
+
+                    <h3>📋 Contoh Penggunaan</h3>
+                    <div class="info-card">
+                        <strong>Menambahkan user ke tiket:</strong>
+                        <pre><code>/ticket add @JohnDoe</code></pre>
+                        <p>Ini akan memberikan @JohnDoe akses untuk membaca dan menulis di channel tiket saat ini.</p>
+                    </div>
+                    <div class="info-card">
+                        <strong>Memberikan vouch:</strong>
+                        <pre><code>/vouch @Penjual Transaksi bagus, pengiriman cepat!</code></pre>
+                        <p>Ini akan mengirim pesan vouch ke channel vouch yang sudah dikonfigurasi.</p>
+                    </div>
                 </div>
             </section>
 
@@ -368,6 +396,28 @@
                         </li>
                         <li>Save and Deploy the panel to a channel.</li>
                     </ol>
+
+                    <h3>📋 Example: Support Panel</h3>
+                    <div class="info-card">
+                        <strong>Panel Settings:</strong>
+                        <ul>
+                            <li><strong>Title:</strong> 🎫 Support Center</li>
+                            <li><strong>Description:</strong> Click the button below to create a support ticket!</li>
+                            <li><strong>Color:</strong> #5865F2 (Discord Blue)</li>
+                        </ul>
+                        <strong>Buttons:</strong>
+                        <ul>
+                            <li>🛒 Purchase - Tag: @Sales Team</li>
+                            <li>🔧 Technical Support - Tag: @Tech Support</li>
+                            <li>📝 General Question - Tag: @Staff</li>
+                        </ul>
+                    </div>
+
+                    <h3>Ticket Channel Naming</h3>
+                    <p>You can customize how ticket channels are named using variables:</p>
+                    <pre><code>ticket-{USER_NAME}           → ticket-john
+ticket-{TICKET_NUMBER}       → ticket-0001
+{TYPE}-{USER_NAME}           → support-john</code></pre>
                 </div>
                 <!-- ID -->
                 <div data-lang="id">
@@ -385,6 +435,28 @@
                             untuk setiap tombol.</li>
                         <li>Simpan dan Pasang (Deploy) panel ke channel Discord.</li>
                     </ol>
+
+                    <h3>📋 Contoh: Panel Support</h3>
+                    <div class="info-card">
+                        <strong>Pengaturan Panel:</strong>
+                        <ul>
+                            <li><strong>Judul:</strong> 🎫 Pusat Bantuan</li>
+                            <li><strong>Deskripsi:</strong> Klik tombol di bawah untuk membuat tiket bantuan!</li>
+                            <li><strong>Warna:</strong> #5865F2 (Biru Discord)</li>
+                        </ul>
+                        <strong>Tombol:</strong>
+                        <ul>
+                            <li>🛒 Pembelian - Tag: @Tim Sales</li>
+                            <li>🔧 Bantuan Teknis - Tag: @Tim Teknis</li>
+                            <li>📝 Pertanyaan Umum - Tag: @Staff</li>
+                        </ul>
+                    </div>
+
+                    <h3>Penamaan Channel Tiket</h3>
+                    <p>Anda dapat menyesuaikan penamaan channel tiket menggunakan variabel:</p>
+                    <pre><code>tiket-{USER_NAME}            → tiket-john
+tiket-{TICKET_NUMBER}        → tiket-0001
+{TYPE}-{USER_NAME}           → support-john</code></pre>
                 </div>
             </section>
 
@@ -402,6 +474,31 @@
                         <li><strong>Goodbye Message:</strong> Notify when someone leaves the server.</li>
                     </ul>
                     <p>Configure this in the <strong>Welcome</strong> tab of your Guild Dashboard.</p>
+
+                    <h3>📋 Example: Welcome Message</h3>
+                    <div class="info-card">
+                        <strong>Welcome Message Template:</strong>
+                        <pre><code>Welcome to {GUILD_NAME}, {USER}! 🎉
+
+You are member #{MEMBER_COUNT}!
+Please read the rules in #rules channel.</code></pre>
+                        <p>This will output: "Welcome to My Server, @JohnDoe! 🎉 You are member #150!"</p>
+                    </div>
+
+                    <h3>📋 Example: Goodbye Message</h3>
+                    <div class="info-card">
+                        <strong>Goodbye Message Template:</strong>
+                        <pre><code>{USER_NAME} has left the server. 👋
+We now have {MEMBER_COUNT} members.</code></pre>
+                    </div>
+
+                    <h3>Welcome Card Setup</h3>
+                    <ol>
+                        <li>Enable "Welcome Card" toggle</li>
+                        <li>Upload a custom background image (recommended: 800x300px)</li>
+                        <li>Choose text color and overlay opacity</li>
+                        <li>The card will automatically include the user's avatar and username</li>
+                    </ol>
                 </div>
                 <!-- ID -->
                 <div data-lang="id">
@@ -416,6 +513,31 @@
                         <li><strong>Pesan Goodbye:</strong> Beri tahu saat seseorang meninggalkan server.</li>
                     </ul>
                     <p>Konfigurasikan ini di tab <strong>Welcome</strong> pada Dashboard Server Anda.</p>
+
+                    <h3>📋 Contoh: Pesan Welcome</h3>
+                    <div class="info-card">
+                        <strong>Template Pesan Welcome:</strong>
+                        <pre><code>Selamat datang di {GUILD_NAME}, {USER}! 🎉
+
+Kamu adalah member ke-#{MEMBER_COUNT}!
+Silakan baca aturan di channel #rules.</code></pre>
+                        <p>Outputnya: "Selamat datang di Server Saya, @JohnDoe! 🎉 Kamu adalah member ke-#150!"</p>
+                    </div>
+
+                    <h3>📋 Contoh: Pesan Goodbye</h3>
+                    <div class="info-card">
+                        <strong>Template Pesan Goodbye:</strong>
+                        <pre><code>{USER_NAME} telah meninggalkan server. 👋
+Sekarang kita memiliki {MEMBER_COUNT} member.</code></pre>
+                    </div>
+
+                    <h3>Setup Kartu Welcome</h3>
+                    <ol>
+                        <li>Aktifkan toggle "Welcome Card"</li>
+                        <li>Upload gambar background kustom (rekomendasi: 800x300px)</li>
+                        <li>Pilih warna teks dan opacity overlay</li>
+                        <li>Kartu akan otomatis menampilkan avatar dan username pengguna</li>
+                    </ol>
                 </div>
             </section>
 
@@ -433,6 +555,37 @@
                         <li>Custom Colors</li>
                     </ul>
                     <p>These are perfect for rules channels, info channels, or announcements.</p>
+
+                    <h3>📋 Example: Server Rules Embed</h3>
+                    <div class="info-card">
+                        <strong>Embed Settings:</strong>
+                        <ul>
+                            <li><strong>Title:</strong> 📜 Server Rules</li>
+                            <li><strong>Description:</strong></li>
+                        </ul>
+                        <pre><code>**1. Be Respectful**
+Treat everyone with respect. No harassment or hate speech.
+
+**2. No Spam**
+Do not spam messages, emojis, or mentions.
+
+**3. Follow Discord TOS**
+All Discord Terms of Service apply here.
+
+**4. Have Fun!**
+Enjoy your stay! 🎉</code></pre>
+                        <ul>
+                            <li><strong>Color:</strong> #ED4245 (Red)</li>
+                            <li><strong>Footer:</strong> Last updated: January 2026</li>
+                        </ul>
+                    </div>
+
+                    <h3>How to Send</h3>
+                    <ol>
+                        <li>Create your embed in the editor</li>
+                        <li>Select the target channel</li>
+                        <li>Click "Send to Channel"</li>
+                    </ol>
                 </div>
                 <!-- ID -->
                 <div data-lang="id">
@@ -446,6 +599,37 @@
                         <li>Warna Kustom</li>
                     </ul>
                     <p>Ini sangat cocok untuk channel aturan, channel info, atau pengumuman.</p>
+
+                    <h3>📋 Contoh: Embed Aturan Server</h3>
+                    <div class="info-card">
+                        <strong>Pengaturan Embed:</strong>
+                        <ul>
+                            <li><strong>Judul:</strong> 📜 Aturan Server</li>
+                            <li><strong>Deskripsi:</strong></li>
+                        </ul>
+                        <pre><code>**1. Saling Menghormati**
+Perlakukan semua orang dengan hormat. Dilarang pelecehan atau ujaran kebencian.
+
+**2. Dilarang Spam**
+Jangan spam pesan, emoji, atau mention.
+
+**3. Patuhi TOS Discord**
+Semua Ketentuan Layanan Discord berlaku di sini.
+
+**4. Selamat Bersenang-senang!**
+Nikmati waktu Anda! 🎉</code></pre>
+                        <ul>
+                            <li><strong>Warna:</strong> #ED4245 (Merah)</li>
+                            <li><strong>Footer:</strong> Terakhir diupdate: Januari 2026</li>
+                        </ul>
+                    </div>
+
+                    <h3>Cara Mengirim</h3>
+                    <ol>
+                        <li>Buat embed di editor</li>
+                        <li>Pilih channel tujuan</li>
+                        <li>Klik "Send to Channel"</li>
+                    </ol>
                 </div>
             </section>
 
@@ -502,6 +686,32 @@
                         </li>
                         <li><strong>Response:</strong> The message the bot will send.</li>
                     </ul>
+
+                    <h3>📋 Examples</h3>
+                    <div class="info-card">
+                        <strong>Server IP Command:</strong>
+                        <ul>
+                            <li><strong>Trigger:</strong> ip</li>
+                            <li><strong>Response:</strong></li>
+                        </ul>
+                        <pre><code>🎮 **Server IP**
+
+IP: play.myserver.com
+Port: 25565
+Version: 1.20.4</code></pre>
+                        <p>Users can type <code>!ip</code> to get this response.</p>
+                    </div>
+                    <div class="info-card">
+                        <strong>Store Link Command:</strong>
+                        <ul>
+                            <li><strong>Trigger:</strong> store</li>
+                            <li><strong>Response:</strong></li>
+                        </ul>
+                        <pre><code>🛍️ **Our Store**
+
+Visit: https://store.myserver.com
+Use code DISCORD for 10% off!</code></pre>
+                    </div>
                 </div>
                 <!-- ID -->
                 <div data-lang="id">
@@ -516,6 +726,32 @@
                         </li>
                         <li><strong>Response:</strong> Pesan yang akan dikirim bot.</li>
                     </ul>
+
+                    <h3>📋 Contoh</h3>
+                    <div class="info-card">
+                        <strong>Command IP Server:</strong>
+                        <ul>
+                            <li><strong>Trigger:</strong> ip</li>
+                            <li><strong>Response:</strong></li>
+                        </ul>
+                        <pre><code>🎮 **IP Server**
+
+IP: play.serverku.com
+Port: 25565
+Versi: 1.20.4</code></pre>
+                        <p>User bisa ketik <code>!ip</code> untuk mendapat respons ini.</p>
+                    </div>
+                    <div class="info-card">
+                        <strong>Command Link Toko:</strong>
+                        <ul>
+                            <li><strong>Trigger:</strong> store</li>
+                            <li><strong>Response:</strong></li>
+                        </ul>
+                        <pre><code>🛍️ **Toko Kami**
+
+Kunjungi: https://toko.serverku.com
+Gunakan kode DISCORD untuk diskon 10%!</code></pre>
+                    </div>
                 </div>
             </section>
 
