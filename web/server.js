@@ -22,6 +22,9 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.WEB_PORT || 3000;
 
+// Trust proxy (for Nginx reverse proxy - fixes rate limiter X-Forwarded-For issue)
+app.set('trust proxy', 1);
+
 // ===================
 // SECURITY MIDDLEWARE
 // ===================
