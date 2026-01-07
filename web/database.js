@@ -512,7 +512,7 @@ const ALLOWED_GUILD_COLUMNS = [
   'open_category_id', 'claims_enabled', 'ticket_limit', 'dm_enabled', 'steam_check_enabled',
   'steam_role_id', 'welcome_channel_id', 'welcome_message', 'welcome_embed', 'leave_channel_id',
   'leave_message', 'leave_embed', 'vouch_channel_id', 'vouch_data', 'auto_close_enabled',
-  'auto_close_hours', 'auto_close_message'
+  'auto_close_hours', 'auto_close_message', 'transcript_channel_id'
 ];
 
 export const updateGuildSetting = (guildId, botId, column, value) => {
