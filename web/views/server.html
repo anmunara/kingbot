@@ -1,0 +1,173 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Dashboard - Ticket Bot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <a href="/dashboard" class="logo">
+                👑 <span>KingBot</span>
+            </a>
+            <div class="user-info" id="user-info"></div>
+        </div>
+    </header>
+
+    <nav class="sidebar">
+        <ul class="sidebar-nav" id="sidebar-nav">
+            <!-- Filled by JS -->
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div id="server-header" style="margin-bottom: 30px;">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <div class="grid grid-4" id="stats-grid">
+            <!-- Stats loaded by JS -->
+        </div>
+
+        <div style="margin-top: 40px;">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">📊 Quick Stats</h2>
+                </div>
+                <div id="quick-stats">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const userData = {{ USER_DATA }};
+        const guildId = window.location.pathname.split('/')[2];
+
+        // User info
+        if (userData) {
+            const avatarUrl = userData.avatar
+                ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`
+                : 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+            document.getElementById('user-info').innerHTML = `
+        <img src="${avatarUrl}" alt="" class="avatar">
+        <span>${userData.username}</span>
+        <a href="/auth/logout" class="btn btn-secondary" style="padding: 8px 16px;">Logout</a>
+      `;
+        }
+
+        // Sidebar
+        document.getElementById('sidebar-nav').innerHTML = `
+      <li><a href="/server/${guildId}" class="active">📊 Overview</a></li>
+      <li><a href="/server/${guildId}/panels">👑 Panels</a></li>
+      <li><a href="/server/${guildId}/tickets">📋 Tickets</a></li>
+      <li><a href="/server/${guildId}/settings">⚙️ Settings</a></li>
+      <li><a href="/dashboard">← Back to Servers</a></li>
+    `;
+
+        // Load guild info
+        async function loadGuild() {
+            try {
+                const res = await fetch(`/api/guild/${guildId}`);
+                const guild = await res.json();
+
+                document.getElementById('server-header').innerHTML = `
+          <div style="display: flex; align-items: center; gap: 20px;">
+            <img src="${guild.icon || 'https://cdn.discordapp.com/embed/avatars/0.png'}" 
+                 alt="" style="width: 64px; height: 64px; border-radius: 12px;">
+            <div>
+              <h1 style="margin: 0;">${guild.name}</h1>
+              <p style="color: var(--text-secondary); margin: 4px 0;">${guild.memberCount.toLocaleString()} members</p>
+            </div>
+          </div>
+        `;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const res = await fetch(`/api/guild/${guildId}/stats`);
+                const data = await res.json();
+
+                const stats = data.overview || {};
+
+                document.getElementById('stats-grid').innerHTML = `
+          <div class="card stat-card">
+            <div class="stat-value">${stats.total_tickets || 0}</div>
+            <div class="stat-label">Total Tickets</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-value" style="-webkit-text-fill-color: var(--success);">${stats.open_tickets || 0}</div>
+            <div class="stat-label">Open Tickets</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-value" style="-webkit-text-fill-color: var(--error);">${stats.closed_tickets || 0}</div>
+            <div class="stat-label">Closed Tickets</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-value">${formatTime(stats.avg_response_time)}</div>
+            <div class="stat-label">Avg Response</div>
+          </div>
+        `;
+
+                // Staff leaderboard
+                let staffHtml = '<p style="color: var(--text-muted);">No ticket data yet.</p>';
+                if (data.staff && data.staff.length > 0) {
+                    staffHtml = `
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Staff Member</th>
+                  <th>Tickets</th>
+                  <th>Avg Response</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.staff.map((s, i) => `
+                  <tr>
+                    <td>${['🥇', '🥈', '🥉'][i] || (i + 1)}</td>
+                    <td><@${s.user_id}></td>
+                    <td>${s.tickets_claimed}</td>
+                    <td>${formatTime(s.avg_response_time)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+                }
+
+                document.getElementById('quick-stats').innerHTML = staffHtml;
+
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function formatTime(seconds) {
+            if (!seconds) return 'N/A';
+            if (seconds < 60) return Math.round(seconds) + 's';
+            if (seconds < 3600) return Math.round(seconds / 60) + 'm';
+            return Math.round(seconds / 3600) + 'h';
+        }
+
+        loadGuild();
+        loadStats();
+    </script>
+</body>
+
+</html>

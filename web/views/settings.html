@@ -1,0 +1,209 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Ticket Bot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <a href="/dashboard" class="logo">👑 <span>KingBot</span></a>
+            <div class="user-info" id="user-info"></div>
+        </div>
+    </header>
+
+    <nav class="sidebar">
+        <ul class="sidebar-nav" id="sidebar-nav"></ul>
+    </nav>
+
+    <main class="main-content">
+        <h1 style="margin-bottom: 30px;">⚙️ Settings</h1>
+
+        <form id="settings-form">
+            <div class="grid grid-2">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">📁 Channels</h3>
+
+                    <div class="form-group">
+                        <label class="form-label">Log Channel</label>
+                        <select class="form-select" name="logChannel" id="logChannel">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Transcript Channel</label>
+                        <select class="form-select" name="transcriptChannel" id="transcriptChannel">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Ticket Category</label>
+                        <select class="form-select" name="ticketCategory" id="ticketCategory">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">🔧 Options</h3>
+
+                    <div class="form-group">
+                        <label class="form-label">Language</label>
+                        <select class="form-select" name="language" id="language">
+                            <option value="en">English</option>
+                            <option value="id">Bahasa Indonesia</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Auto-Close Hours (0 = disabled)</label>
+                        <input type="number" class="form-input" name="autoCloseHours" id="autoCloseHours" min="0"
+                            max="168" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Support Team Roles</label>
+                        <div id="roles-container"
+                            style="max-height: 200px; overflow-y: auto; border: 1px solid #2f3136; padding: 10px; border-radius: 4px;">
+                            <p style="color: #bbb; font-size: 0.9em;">Loading roles...</p>
+                        </div>
+                        <p style="font-size: 0.8em; color: #aaa; margin-top: 5px;">Selected roles can view and manage
+                            tickets.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button type="submit" class="btn btn-primary">💾 Save Settings</button>
+            </div>
+        </form>
+
+        <div id="save-status" style="margin-top: 20px;"></div>
+    </main>
+
+    <script>
+        const userData = {{ USER_DATA }};
+        const guildId = window.location.pathname.split('/')[2];
+
+        if (userData) {
+            const avatarUrl = userData.avatar
+                ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`
+                : 'https://cdn.discordapp.com/embed/avatars/0.png';
+            document.getElementById('user-info').innerHTML = `
+        <img src="${avatarUrl}" alt="" class="avatar">
+        <span>${userData.username}</span>
+        <a href="/auth/logout" class="btn btn-secondary" style="padding: 8px 16px;">Logout</a>
+      `;
+        }
+
+        document.getElementById('sidebar-nav').innerHTML = `
+      <li><a href="/server/${guildId}">📊 Overview</a></li>
+      <li><a href="/server/${guildId}/panels">👑 Panels</a></li>
+      <li><a href="/server/${guildId}/tickets">📋 Tickets</a></li>
+      <li><a href="/server/${guildId}/settings" class="active">⚙️ Settings</a></li>
+      <li><a href="/dashboard">← Back to Servers</a></li>
+    `;
+
+        async function loadSettings() {
+            try {
+                // Load channels
+                const channelsRes = await fetch(`/api/guild/${guildId}/channels`);
+                const channels = await channelsRes.json();
+
+                const textChannels = channels.filter(c => c.type === 0);
+                const categories = channels.filter(c => c.type === 4);
+
+                // Load roles
+                const rolesRes = await fetch(`/api/guild/${guildId}/roles`);
+                const roles = await rolesRes.json();
+                const rolesContainer = document.getElementById('roles-container');
+                rolesContainer.innerHTML = ''; // Clear loading
+
+                const logSelect = document.getElementById('logChannel');
+                const transcriptSelect = document.getElementById('transcriptChannel');
+                const categorySelect = document.getElementById('ticketCategory');
+
+                textChannels.forEach(c => {
+                    logSelect.innerHTML += `<option value="${c.id}">#${c.name}</option>`;
+                    transcriptSelect.innerHTML += `<option value="${c.id}">#${c.name}</option>`;
+                });
+
+                categories.forEach(c => {
+                    categorySelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                });
+
+                // Load current settings
+                const guildRes = await fetch(`/api/guild/${guildId}`);
+                const guild = await guildRes.json();
+
+                if (guild.config) {
+                    logSelect.value = guild.config.log_channel_id || '';
+                    transcriptSelect.value = guild.config.transcript_channel_id || '';
+                    categorySelect.value = guild.config.ticket_category_id || '';
+                    document.getElementById('language').value = guild.config.language || 'en';
+                    document.getElementById('autoCloseHours').value = guild.config.auto_close_hours || 0;
+
+                    // Render roles
+                    const savedRoles = guild.config.support_role_ids ? JSON.parse(guild.config.support_role_ids) : [];
+
+                    roles.forEach(r => {
+                        const isChecked = savedRoles.includes(r.id) ? 'checked' : '';
+                        rolesContainer.innerHTML += `
+                            <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                <input type="checkbox" name="supportRoles" value="${r.id}" id="role-${r.id}" ${isChecked}>
+                                <label for="role-${r.id}" style="margin-left: 8px; color: ${r.color !== '#000000' ? r.color : 'inherit'}; cursor: pointer;">
+                                    ${r.name}
+                                </label>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        document.getElementById('settings-form').onsubmit = async (e) => {
+            e.preventDefault();
+
+            const form = new FormData(e.target);
+
+            try {
+                const res = await fetch(`/api/guild/${guildId}/settings`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        logChannel: form.get('logChannel') || null,
+                        transcriptChannel: form.get('transcriptChannel') || null,
+                        ticketCategory: form.get('ticketCategory') || null,
+                        language: form.get('language'),
+                        autoCloseHours: parseInt(form.get('autoCloseHours')) || 0,
+                        supportRoles: Array.from(document.querySelectorAll('input[name="supportRoles"]:checked')).map(cb => cb.value),
+                    }),
+                });
+
+                if (res.ok) {
+                    document.getElementById('save-status').innerHTML = `
+            <p style="color: var(--success);">✅ Settings saved successfully!</p>
+          `;
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('save-status').innerHTML = `
+          <p style="color: var(--error);">❌ Failed to save settings</p>
+        `;
+            }
+        };
+
+        loadSettings();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,2279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Editor - KingBot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/emoji-data.js"></script>
+    <style>
+        .editor-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 24px;
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1024px) {
+            .editor-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .preview-panel {
+                display: none;
+            }
+        }
+
+        .editor-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .section-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .input-field {
+            width: 100%;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            color: #fff;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent);
+            /* Red on focus */
+            box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: #555;
+        }
+
+        textarea.input-field {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .color-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
+        .color-input {
+            opacity: 0;
+            position: absolute;
+            width: 0;
+            height: 0;
+        }
+
+        /* Button Editor */
+        .button-row {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .button-row-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .button-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+        }
+
+        .button-emoji {
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .button-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .button-label-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .button-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .icon-btn:hover {
+            color: #fff;
+        }
+
+        .icon-btn.delete:hover {
+            color: var(--error);
+        }
+
+        .add-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-primary);
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Preview Panel */
+        .preview-panel {
+            position: sticky;
+            top: 24px;
+        }
+
+        .preview-title {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        /* Ticket King Preview Styles */
+        .tk-preview-container {
+            background: radial-gradient(circle at top left, rgba(88, 101, 242, 0.1), transparent 40%), #2f3136;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .tk-preview-header {
+            padding: 8px 12px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #b9bbbe;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .tk-preview-content {
+            padding: 16px;
+        }
+
+        .tk-embed {
+            border-left: 4px solid #5865f2;
+            background: rgba(47, 49, 54, 0.6);
+            border-radius: 4px;
+            padding: 8px 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tk-embed-author {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .tk-embed-author img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+
+        .tk-embed-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .tk-embed-desc {
+            font-size: 14px;
+            color: #dcddde;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .tk-embed-image {
+            margin-top: 12px;
+            border-radius: 4px;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .tk-embed-footer {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #b9bbbe;
+        }
+
+        .tk-embed-footer img {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        .tk-btns-row {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tk-discord-btn {
+            height: 32px;
+            padding: 0 16px;
+            background-color: #5865F2;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+
+        .tk-discord-btn img {
+            width: 18px;
+            height: 18px;
+        }
+
+        .editor-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 0;
+        }
+
+        .toolbar-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            gap: 12px;
+        }
+    </style>
+    <style>
+        /* Previous styles... */
+
+        /* Toggle Switch Styles */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #36393f;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border: 1px solid var(--border);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background-color: #72767d;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #3ba55d;
+            border-color: #3ba55d;
+        }
+
+        input:checked+.slider:before {
+            -webkit-transform: translateX(24px);
+            -ms-transform: translateX(24px);
+            transform: translateX(24px);
+            background-color: #fff;
+        }
+
+        .slider.round {
+            border-radius: 24px;
+        }
+
+        /* Role Selector Chips */
+        .role-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .role-chip {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            font-size: 0.85em;
+        }
+
+        .role-chip:hover {
+            border-color: #72767d;
+            background: var(--bg-secondary);
+        }
+
+        .role-chip.selected {
+            background: rgba(88, 101, 242, 0.2);
+            border-color: #5865f2;
+        }
+
+        .role-chip.selected span {
+            color: #fff !important;
+            font-weight: 500;
+        }
+
+        .role-color-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        /* Settings Design */
+        .setting-card {
+            background: #2b2d31;
+            border: 1px solid #1e1f22;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .setting-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: #b5bac1;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .tab-btn.active {
+            background: #404249;
+            color: #fff;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #35373c;
+            color: #dbdee1;
+        }
+
+        .variable-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .variable-btn {
+            background: #35373c;
+            border: none;
+            color: #dbdee1;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .variable-btn:hover {
+            background: #404249;
+            color: #fff;
+        }
+    </style>
+    <style>
+        /* Premium Emoji Picker Styles */
+        .modal-overlay {
+            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.7) !important;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-content {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border) !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+            border-radius: 16px !important;
+            overflow: hidden;
+            animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalPop {
+            from {
+                transform: scale(0.95) translateY(10px);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .emoji-grid {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        /* Custom Scrollbar */
+        .emoji-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .emoji-grid::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .emoji-grid::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+        }
+
+        .emoji-grid::-webkit-scrollbar-thumb:hover {
+            background: var(--border);
+        }
+
+        .emoji-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            background: transparent;
+            position: relative;
+        }
+
+        .emoji-item:hover {
+            background: var(--bg-tertiary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        .emoji-item:active {
+            transform: scale(0.95);
+        }
+
+        .emoji-item img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .emoji-search-input {
+            width: 100%;
+            padding: 10px 10px 10px 36px;
+            background: var(--bg-tertiary);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .emoji-search-input:focus {
+            background: var(--bg-secondary);
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
+        }
+
+        .section-divider {
+            grid-column: 1 / -1;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin: 12px 0 8px 4px;
+            padding-top: 8px;
+        }
+
+        .section-divider:first-child {
+            padding-top: 0;
+            margin-top: 0;
+        }
+
+        /* Category Nav */
+        .emoji-nav {
+            display: flex;
+            gap: 4px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .emoji-nav::-webkit-scrollbar {
+            height: 4px;
+            background: transparent;
+        }
+
+        .emoji-nav::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        .emoji-nav::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        .emoji-nav-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 36px;
+            padding: 0 16px;
+            /* Pill padding */
+            border-radius: 20px;
+            /* Pill shape */
+            cursor: pointer;
+            color: #b9bbbe;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid transparent;
+            margin-right: 4px;
+        }
+
+        .emoji-nav-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        .emoji-nav-item.active {
+            background: var(--accent);
+            /* Solid accent for active pill */
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .emoji-nav-item span {
+            max-width: none;
+            opacity: 1;
+            overflow: visible;
+            white-space: nowrap;
+            font-size: 13px;
+            font-weight: 600;
+            margin-left: 8px;
+            display: inline-block;
+        }
+
+        .emoji-nav-item.active span {
+            /* Keep consistent */
+            max-width: none;
+            opacity: 1;
+            margin-left: 8px;
+        }
+
+        /* Custom Tooltip for Inactive Items */
+        .emoji-nav-item:not(.active):hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-5px);
+            background: #111;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.2s forwards;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <a href="/dashboard" class="logo">👑 <span>KingBot</span></a>
+            <div class="user-info" id="user-info"></div>
+        </div>
+    </header>
+
+    <div class="editor-toolbar">
+        <div class="toolbar-title">
+            <a href="javascript:history.back()" class="btn btn-secondary" style="padding: 8px 16px;"><i
+                    class="fas fa-arrow-left"></i> Back</a>
+            <h2 style="margin: 0;"><i class="fas fa-edit"></i> Panel Editor</h2>
+        </div>
+        <div class="toolbar-actions">
+            <button class="btn btn-secondary" onclick="resetEditor()">Reset</button>
+            <button class="btn btn-primary save-btn" onclick="savePanel()"><i class="fas fa-save"></i> Save &
+                Deploy</button>
+        </div>
+    </div>
+
+    <div class="editor-layout">
+        <!-- Editor Column -->
+        <div class="editor-column">
+            <!-- Panel Name -->
+            <div class="editor-card">
+                <div class="input-group">
+                    <label class="input-label">Panel Name *</label>
+                    <input type="text" class="input-field" id="panel-name" placeholder="e.g., Support Panel">
+                </div>
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label class="input-label">Message Content (appears above embed)</label>
+                    <textarea class="input-field" id="message-content" rows="2"
+                        placeholder="Optional message text..."></textarea>
+                </div>
+            </div>
+
+            <!-- Embed Editor -->
+            <div class="editor-card">
+                <div class="section-header">
+                    <span class="section-title">Embed 1</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="icon-btn" title="Delete Embed"><i class="fas fa-trash"></i></button>
+                        <button class="icon-btn" title="Reset Embed"><i class="fas fa-undo"></i></button>
+                    </div>
+                </div>
+
+                <!-- Embed Color -->
+                <div class="input-group">
+                    <label class="input-label">Embed Color</label>
+                    <label class="color-picker-wrapper">
+                        <div class="color-circle" id="color-preview" style="background: #d4af37;"></div>
+                        <span>Click to change color</span>
+                        <input type="color" class="color-input" id="embed-color" value="#d4af37">
+                    </label>
+                </div>
+
+                <!-- Author Section -->
+                <div style="margin-bottom: 20px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span class="input-label" style="margin: 0;">Author Information</span>
+                        <span class="section-hint"><i class="fas fa-info-circle"></i> Appears at top of embed</span>
+                    </div>
+                    <div class="input-row" style="margin-bottom: 8px;">
+                        <input type="text" class="input-field" id="author-name" placeholder="Author Name">
+                        <input type="text" class="input-field" id="author-url" placeholder="Author URL">
+                    </div>
+                    <input type="text" class="input-field" id="author-icon" placeholder="Author Icon URL">
+                </div>
+
+                <!-- Content Section -->
+                <div style="margin-bottom: 20px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span class="input-label" style="margin: 0;">Content</span>
+                        <span class="section-hint"><i class="fas fa-info-circle"></i> Main content of embed</span>
+                    </div>
+                    <div class="input-row" style="margin-bottom: 8px;">
+                        <input type="text" class="input-field" id="embed-title" placeholder="Title Text"
+                            value="**Help & Support**">
+                        <input type="text" class="input-field" id="title-url" placeholder="Title URL">
+                    </div>
+                    <textarea class="input-field" id="embed-description"
+                        placeholder="Description Text">Click below to create a new support ticket ???</textarea>
+                </div>
+
+                <!-- Media Section -->
+                <div style="margin-bottom: 20px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span class="input-label" style="margin: 0;">Media</span>
+                        <span class="section-hint"><i class="fas fa-image"></i> Images for embed</span>
+                    </div>
+                    <div class="input-row">
+                        <input type="text" class="input-field" id="image-url" placeholder="Large Image URL">
+                        <input type="text" class="input-field" id="thumbnail-url" placeholder="Thumbnail URL">
+                    </div>
+                </div>
+
+                <!-- Footer Section -->
+                <div>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <span class="input-label" style="margin: 0;">Footer</span>
+                        <span class="section-hint"><i class="fas fa-info-circle"></i> Appears at bottom</span>
+                    </div>
+                    <div class="input-row">
+                        <input type="text" class="input-field" id="footer-text" placeholder="Footer Text"
+                            value="Powered by KingBot">
+                        <input type="text" class="input-field" id="footer-icon" placeholder="Footer Icon URL">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buttons Editor -->
+            <div class="editor-card">
+                <div class="section-header">
+                    <span class="section-title">Buttons</span>
+                </div>
+
+                <div id="button-rows">
+                    <div class="button-row" data-row="0">
+                        <div class="button-row-header">
+                            <span style="font-size: 12px; color: var(--text-muted);"><i
+                                    class="fas fa-layer-group"></i></span>
+                            <span style="font-size: 12px;">Button Row</span>
+                        </div>
+                        <div class="buttons-container">
+                            <div class="button-item" data-btn="0">
+                                <span class="button-emoji" onclick="changeEmoji(this)">??</span>
+                                <div class="button-color primary" style="background: #5865f2;"
+                                    onclick="cycleButtonColor(this)"></div>
+                                <input type="text" class="button-label-input" value="Create Ticket"
+                                    placeholder="Button Label">
+                                <div class="button-actions">
+                                    <button class="icon-btn" title="Settings" onclick="openSettings(this)"><i
+                                            class="fas fa-cog"></i></button>
+                                    <button class="icon-btn delete" title="Delete" onclick="deleteButton(this)"><i
+                                            class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="add-btn" onclick="addButton(this)" style="margin-top: 8px;">
+                            <i class="fas fa-plus"></i> Add Button
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+                    <button class="add-btn" onclick="addButtonRow()"><i class="fas fa-plus"></i> Add Button Row</button>
+                    <button class="add-btn" onclick="addSelectMenu()"><i class="fas fa-list"></i> Add Select
+                        Menu</button>
+                </div>
+            </div>
+
+            <!-- Channel Selection -->
+            <div class="editor-card">
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label class="input-label">Deploy to Channel</label>
+                    <select class="input-field" id="deploy-channel">
+                        <option value="">Select a channel...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Column -->
+        <div class="preview-panel">
+            <div style="position: sticky; top: 24px;">
+                <div class="preview-title"
+                    style="margin-bottom: 8px; text-align: center; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Live Preview</div>
+
+                <div class="tk-preview-container">
+                    <div class="tk-preview-header">
+                        <div id="preview-date">Last updated Today</div>
+                        <div style="display: flex; gap: 4px; align-items: center;">
+                            <span>•</span>
+                            <span
+                                style="background: rgba(88, 101, 242, 0.3); color: #C9CDFB; padding: 2px 6px; border-radius: 4px;"
+                                id="preview-channel-tag">#select-channel</span>
+                        </div>
+                    </div>
+
+                    <div class="tk-preview-content">
+                        <!-- Discord Embed -->
+                        <div class="tk-embed" id="discord-embed">
+                            <div class="tk-embed-author" id="preview-author" style="display: none;">
+                                <img id="preview-author-icon" src=""
+                                    onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'; this.onerror=null;">
+                                <span id="preview-author-name"></span>
+                            </div>
+
+                            <div class="tk-embed-title" id="preview-title" style="display: none;"></div>
+
+                            <div class="tk-embed-desc" id="preview-description" style="display: none;"></div>
+
+                            <div class="tk-embed-image" id="preview-image-container" style="display: none;">
+                                <img id="preview-image" style="width: 100%; display: block;"
+                                    onerror="this.style.display='none'; document.getElementById('preview-image-error').style.display='block';">
+                                <div id="preview-image-error"
+                                    style="display:none; padding:12px; text-align:center; color:#ed4245; background:rgba(237,66,69,0.1); border-radius:4px; font-size:12px; margin-top:4px;">
+                                    <i class="fas fa-exclamation-circle"></i> Failed to load image. Link may be expired
+                                    or invalid.
+                                </div>
+                            </div>
+
+                            <div class="tk-embed-footer" id="preview-footer" style="display: none;">
+                                <img id="preview-footer-icon" src=""
+                                    onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'; this.onerror=null;">
+                                <span id="preview-footer-text"></span>
+                            </div>
+                        </div>
+
+                        <!-- Buttons Row -->
+                        <div class="tk-btns-row" id="preview-buttons">
+                            <!-- Buttons injected by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TicketKing Style Settings Modal -->
+    <div id="settings-modal" class="modal-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+        <div class="modal-content"
+            style="background: #1e1f22; width: 700px; max-width: 95%; border-radius: 12px; display: flex; flex-direction: column; max-height: 90vh; border: 1px solid #2b2d31;">
+
+            <!-- Header -->
+            <div
+                style="padding: 16px 24px; border-bottom: 1px solid #2b2d31; display: flex; justify-content: space-between; align-items: center; background: #232428; border-radius: 12px 12px 0 0;">
+                <div style="display: flex; flex-direction: column;">
+                    <h3 style="margin: 0; color: #f2f3f5; font-size: 1.1rem; font-weight: 600;">Option Settings</h3>
+                    <span style="font-size: 0.8rem; color: #b5bac1;" id="modal-subtitle">Configure button
+                        behavior</span>
+                </div>
+                <button class="icon-btn" onclick="closeModal()"
+                    style="background: transparent; color: #b5bac1; font-size: 1.2rem;"><i
+                        class="fas fa-times"></i></button>
+            </div>
+
+            <!-- Tabs -->
+            <div style="padding: 20px 24px 0;">
+                <div class="flex gap-1 rounded-lg bg-[#111214] p-1"
+                    style="display: flex; gap: 4px; padding: 4px; border-radius: 8px; background: #111214;">
+                    <button class="tab-btn active" onclick="switchTab('general')" style="flex: 1;">General</button>
+                    <button class="tab-btn" onclick="switchTab('messages')" style="flex: 1;">Messages</button>
+                    <button class="tab-btn" onclick="switchTab('advanced')" style="flex: 1;">Advanced</button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body" style="padding: 24px; overflow-y: auto; color: #dbdee1;">
+
+                <!-- General Tab -->
+                <div id="tab-general">
+                    <!-- Disable Option -->
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <div>
+                                <label class="input-label">Maintenance Mode</label>
+                                <p class="section-hint">Disable this specific button temporarily.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="opt-disabled">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Ticket Style -->
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <div>
+                                <label class="input-label">Ticket Channel Type</label>
+                                <p class="section-hint">Choose how tickets are created.</p>
+                            </div>
+                            <select id="opt-style" class="input-field" style="width: 180px;">
+                                <option value="channel"># Text Channel</option>
+                                <option value="thread"># Private Thread</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Ticket Category -->
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <div>
+                                <label class="input-label">Ticket Category</label>
+                                <p class="section-hint">Create tickets inside this category.</p>
+                            </div>
+                            <select id="opt-category" class="input-field" style="width: 180px;">
+                                <option value="">--- Default ---</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Required Roles -->
+                    <div class="setting-card">
+                        <label class="input-label">Required Roles (Optional)</label>
+                        <p class="section-hint" style="margin-bottom: 12px;">Only users with these roles can open this
+                            ticket.</p>
+                        <div id="roles-selector" class="role-grid">
+                            <!-- Roles JS -->
+                        </div>
+                    </div>
+
+                    <!-- Questions Section -->
+                    <div class="setting-card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <label class="input-label" style="margin: 0;">Ticket Questions</label>
+                            <button class="btn btn-secondary btn-sm" onclick="addQuestion()">+ Add Question</button>
+                        </div>
+                        <p class="section-hint" style="margin-bottom: 12px;">Ask up to 5 questions before ticket
+                            creation.</p>
+                        <div id="questions-list" style="display: flex; flex-direction: column; gap: 10px;">
+                            <!-- Questions JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messages Tab -->
+                <div id="tab-messages" style="display: none;">
+
+                    <!-- Ticket Message -->
+                    <div class="setting-card">
+                        <div class="variable-header">
+                            <label class="input-label">Custom Ticket Message (Outside Embed)</label>
+                            <button class="variable-btn" onclick="insertVar('opt-ticket-msg', '{USER}')">+
+                                {USER}</button>
+                        </div>
+                        <p class="section-hint" style="margin-bottom: 8px;">Message sent above the embed (good for
+                            pings).</p>
+                        <textarea id="opt-ticket-msg" class="input-field" rows="3"
+                            placeholder="Halo {USER}, staff kami akan segera membantu..."></textarea>
+                    </div>
+
+                    <!-- Embed Content (Welcome Message) -->
+                    <div class="setting-card">
+                        <div class="variable-header">
+                            <label class="input-label">Custom Embed Content</label>
+                            <button class="variable-btn" onclick="insertVar('opt-welcome-msg', '{USER}')">+
+                                {USER}</button>
+                        </div>
+                        <p class="section-hint" style="margin-bottom: 8px;">Main Description of the ticket embed.</p>
+                        <textarea id="opt-welcome-msg" class="input-field" rows="5"
+                            placeholder="Support will be with you shortly."></textarea>
+                    </div>
+
+                    <!-- Staff Thread Message -->
+                    <div class="setting-card">
+                        <div class="variable-header">
+                            <label class="input-label">Staff Thread Message</label>
+                            <button class="variable-btn" onclick="insertVar('opt-thread-msg', '{TICKET_NUMBER}')">+
+                                {TICKET_NUMBER}</button>
+                        </div>
+                        <p class="section-hint" style="margin-bottom: 8px;">First message inside the private staff
+                            thread (if used).</p>
+                        <textarea id="opt-thread-msg" class="input-field" rows="3"
+                            placeholder="Staff info: User ID: {USER_ID}..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Advanced Tab -->
+                <div id="tab-advanced" style="display: none;">
+
+                    <!-- Ticket Name Format -->
+                    <div class="setting-card">
+                        <div class="variable-header">
+                            <label class="input-label">Ticket Name Format</label>
+                            <span
+                                style="font-size: 11px; color: var(--accent); cursor: pointer; text-decoration: underline;"
+                                onclick="toggleVarSheet()">View Variables</span>
+                        </div>
+                        <p class="section-hint" style="margin-bottom: 8px;">Supports {USER}, {TICKET_NUMBER},
+                            {STEAM_ID}, etc.</p>
+                        <input type="text" id="opt-name-format" class="input-field"
+                            placeholder="ticket-{TICKET_NUMBER}">
+
+                        <!-- Variable Cheat Sheet (Hidden by default) -->
+                        <div id="var-sheet"
+                            style="display: none; margin-top: 10px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; font-size: 11px; color: #b9bbbe;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                <div><code style="color: #fff;">{TYPE}</code> = Ticket Type</div>
+                                <div><code style="color: #fff;">{USER_ID}</code> = User ID</div>
+                                <div><code style="color: #fff;">{USER_NAME}</code> = Username</div>
+                                <div><code style="color: #fff;">{USER_DISCRIMINATOR}</code> = Discriminator</div>
+                                <div><code style="color: #fff;">{GUILD_NAME}</code> = Server Name</div>
+                                <div><code style="color: #fff;">{TICKET_NUMBER}</code> = Ticket #</div>
+                                <div><code style="color: #fff;">{STEAM_ID}</code> = SteamID64</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pings Toggle -->
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <div>
+                                <label class="input-label">Use Ticket Roles as Pings</label>
+                                <p class="section-hint">Ping specific support roles when ticket opens.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="opt-pings">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Steam Integration -->
+                    <div class="setting-card">
+                        <div class="setting-header">
+                            <div>
+                                <label class="input-label">Require Steam Integration</label>
+                                <p class="section-hint">User must link Steam account to open ticket.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="opt-steam">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div
+                style="padding: 16px 24px; border-top: 1px solid #2b2d31; background: #232428; border-radius: 0 0 12px 12px; display: flex; justify-content: flex-end; gap: 12px;">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveModal()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Roles Script -->
+    <!-- Roles script moved to main block to access guildId -->
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!token) window.location.href = '/login';
+
+        // User info
+        document.getElementById('user-info').innerHTML = `
+            <span>${user.username || user.email}</span>
+            <button class="btn btn-secondary" style="padding: 8px 16px; margin-left: 10px;" onclick="logout()">Logout</button>
+        `;
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        const pathParts = window.location.pathname.split('/');
+        const botId = pathParts[2];
+        const guildId = pathParts[4];
+        const panelId = pathParts[6] !== 'new' ? pathParts[6] : null;
+        const isEditMode = !!panelId;
+
+        // Load Roles Logic (Now safe to call)
+        let availableRoles = [];
+        async function loadRoles() {
+            try {
+                const res = await fetch(`/api/bots/${botId}/guild/${guildId}/roles`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    availableRoles = await res.json();
+                } else {
+                    console.error('Roles fetch failed:', await res.text());
+                    availableRoles = [];
+                }
+            } catch (e) {
+                console.error('Failed to load roles:', e);
+                availableRoles = [];
+            }
+        }
+        loadRoles();
+
+        // Update title for edit mode
+        if (isEditMode) {
+            document.querySelector('.toolbar-title h2').innerHTML = '<i class="fas fa-edit"></i> Edit Panel';
+        }
+
+        // Advanced Settings Logic
+        let availableCategories = [];
+        let buttonsData = {};
+        let currentBtnIndex = -1;
+
+        async function openSettings(btnEl) {
+            const btnItem = btnEl.closest('.button-item');
+            // We use DOM position (row + index) as key
+            // Note: This needs to be robust if rows/items change position.
+            // For now, we will rebuild buttonsData map on Save based in DOM structure if needed?
+            // Or just attach a unique ID to each button in DOM?
+
+            // Simpler approach: We iterate the DOM to find "my" index
+            const allBtns = Array.from(document.querySelectorAll('.button-item'));
+            const flatIndex = allBtns.indexOf(btnItem);
+
+            currentBtnIndex = flatIndex;
+
+            if (!buttonsData[currentBtnIndex]) {
+                const existingInput = btnItem.querySelector('.button-label-input');
+                buttonsData[currentBtnIndex] = {
+                    isDisabled: false,
+                    ticketStyle: 'channel',
+                    ticketCategoryId: null,
+                    requiredRoles: [],
+                    questions: [],
+                    // TicketKing New defaults
+                    ticketMessage: '',
+                    welcomeMessage: '',
+                    staffThreadMessage: '',
+                    pingsEnabled: true,
+                    steamRequired: false,
+                    nameFormat: ''
+                };
+            }
+
+            const data = buttonsData[currentBtnIndex];
+
+            // Populate Modal
+            document.getElementById('opt-disabled').checked = data.isDisabled;
+            document.getElementById('opt-style').value = data.ticketStyle || 'channel';
+
+            // Populate Categories
+            const catSelect = document.getElementById('opt-category');
+            catSelect.innerHTML = '<option value="">--- Default ---</option>';
+            availableCategories.forEach(c => {
+                catSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+            });
+            catSelect.value = data.ticketCategoryId || '';
+
+            // New Fields
+            document.getElementById('opt-ticket-msg').value = data.ticketMessage || '';
+            document.getElementById('opt-welcome-msg').value = data.welcomeMessage || '';
+            document.getElementById('opt-thread-msg').value = data.staffThreadMessage || '';
+            document.getElementById('opt-name-format').value = data.nameFormat || '';
+            document.getElementById('opt-pings').checked = data.pingsEnabled !== undefined ? data.pingsEnabled : true;
+            document.getElementById('opt-steam').checked = data.steamRequired || false;
+
+            // Roles
+            // Refresh roles just in case
+            if (availableRoles.length === 0) {
+                await loadRoles();
+            }
+            renderRolesList(data.requiredRoles);
+
+            // Questions
+            renderQuestionsList(data.questions);
+
+            document.getElementById('settings-modal').style.display = 'flex';
+            switchTab('general');
+        }
+
+        function insertVar(inputId, text) {
+            const el = document.getElementById(inputId);
+            const start = el.selectionStart;
+            const end = el.selectionEnd;
+            const val = el.value;
+            el.value = val.substring(0, start) + text + val.substring(end);
+            el.focus();
+            el.selectionStart = el.selectionEnd = start + text.length;
+        }
+
+        function renderRolesList(selectedRoleIds) {
+            const rolesDiv = document.getElementById('roles-selector');
+            if (availableRoles.length === 0) {
+                rolesDiv.innerHTML = '<span style="color:var(--text-muted); font-size:0.9em; padding:4px;">No roles found or loading...</span>';
+                return;
+            }
+
+            rolesDiv.innerHTML = availableRoles.map(r => {
+                const isSelected = selectedRoleIds.includes(r.id);
+                // Use default color if none or black
+                const color = (r.color && r.color !== '#000000') ? r.color : '#99aab5';
+
+                return `
+                    <div class="role-chip ${isSelected ? 'selected' : ''}" onclick="toggleRole('${r.id}', this)" title="${r.name}">
+                        <div class="role-color-dot" style="background: ${color}"></div>
+                        <span style="color: ${isSelected ? '#fff' : '#ccc'}">${r.name}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleRole(roleId, el) {
+            const data = buttonsData[currentBtnIndex];
+            if (!data.requiredRoles) data.requiredRoles = [];
+
+            if (data.requiredRoles.includes(roleId)) {
+                data.requiredRoles = data.requiredRoles.filter(id => id !== roleId);
+                el.classList.remove('selected');
+                el.querySelector('span').style.color = '#ccc';
+            } else {
+                data.requiredRoles.push(roleId);
+                el.classList.add('selected');
+                el.querySelector('span').style.color = '#fff';
+            }
+        }
+
+        function toggleVarSheet() {
+            const el = document.getElementById('var-sheet');
+            el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+        }
+
+        function closeModal() {
+            document.getElementById('settings-modal').style.display = 'none';
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active');
+                b.style.background = 'transparent';
+                b.style.color = 'var(--text-muted)';
+            });
+            const activeBtn = Array.from(document.querySelectorAll('.tab-btn'))
+                .find(b => b.textContent.toLowerCase().includes(tab));
+            if (activeBtn) {
+                activeBtn.style.background = '#404249';
+                activeBtn.style.color = '#fff';
+            }
+
+            // Hide all
+            document.getElementById('tab-general').style.display = 'none';
+            document.getElementById('tab-messages').style.display = 'none';
+            document.getElementById('tab-advanced').style.display = 'none';
+
+            // Show selected
+            if (tab === 'general') document.getElementById('tab-general').style.display = 'block';
+            if (tab === 'messages') document.getElementById('tab-messages').style.display = 'block';
+            if (tab === 'advanced') document.getElementById('tab-advanced').style.display = 'block';
+        }
+
+        function renderQuestionsList(questions) {
+            const list = document.getElementById('questions-list');
+            list.innerHTML = '';
+
+            if (questions.length === 0) {
+                list.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted); font-style:italic;">No questions added yet.</div>`;
+            }
+
+            questions.forEach((q, idx) => {
+                list.innerHTML += `
+                    <div class="question-item" style="background: var(--bg-primary); padding: 10px; border-radius: 4px; border: 1px solid var(--border);">
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                            <input type="text" class="input-field" placeholder="Question (e.g. IGN?)" value="${q.question}" onchange="updateQuestion(${idx}, 'question', this.value)">
+                            <select class="input-field" style="width: 100px;" onchange="updateQuestion(${idx}, 'style', this.value)">
+                                <option value="Short" ${q.style === 'Short' ? 'selected' : ''}>Short</option>
+                                <option value="Paragraph" ${q.style === 'Paragraph' ? 'selected' : ''}>Long</option>
+                            </select>
+                            <button class="icon-btn delete" onclick="removeQuestion(${idx})"><i class="fas fa-trash"></i></button>
+                        </div>
+                        <div style="display: flex; gap: 12px; font-size: 0.9em;">
+                            <label><input type="checkbox" ${q.required ? 'checked' : ''} onchange="updateQuestion(${idx}, 'required', this.checked)"> Required</label>
+                            <input type="text" placeholder="Placeholder..." value="${q.placeholder || ''}" class="input-field" style="font-size: 0.9em; padding: 4px;" onchange="updateQuestion(${idx}, 'placeholder', this.value)">
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function addQuestion() {
+            const data = buttonsData[currentBtnIndex];
+            if (!data.questions) data.questions = [];
+
+            if (data.questions.length >= 5) {
+                alert('Maximum 5 questions allowed (Discord limit).');
+                return;
+            }
+
+            data.questions.push({
+                question: '',
+                placeholder: '',
+                required: true,
+                style: 'Paragraph',
+                minLength: 1,
+                maxLength: 1000
+            });
+            renderQuestionsList(data.questions);
+        }
+
+        function removeQuestion(idx) {
+            if (confirm('Delete this question?')) {
+                const data = buttonsData[currentBtnIndex];
+                data.questions.splice(idx, 1);
+                renderQuestionsList(data.questions);
+            }
+        }
+
+        function updateQuestion(idx, field, value) {
+            const data = buttonsData[currentBtnIndex];
+            data.questions[idx][field] = value;
+        }
+
+        function saveModal() {
+            const data = buttonsData[currentBtnIndex];
+            data.isDisabled = document.getElementById('opt-disabled').checked;
+            data.ticketStyle = document.getElementById('opt-style').value;
+            data.ticketCategoryId = document.getElementById('opt-category').value;
+
+            // New Fields
+            data.ticketMessage = document.getElementById('opt-ticket-msg').value;
+            data.welcomeMessage = document.getElementById('opt-welcome-msg').value;
+            data.staffThreadMessage = document.getElementById('opt-thread-msg').value;
+            data.nameFormat = document.getElementById('opt-name-format').value;
+            data.pingsEnabled = document.getElementById('opt-pings').checked;
+            data.steamRequired = document.getElementById('opt-steam').checked;
+
+            // requiredRoles are updated live via toggleRole
+            closeModal();
+        }
+
+        // Load existing panel data if editing, OR template data if creating from template
+        async function loadPanel() {
+            // Check for template query param
+            const urlParams = new URLSearchParams(window.location.search);
+            const templateId = urlParams.get('template');
+
+            // If creating from template, load template data
+            if (templateId && !panelId) {
+                try {
+                    const res = await fetch(`/api/bots/${botId}/guild/${guildId}/templates/${templateId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (res.ok) {
+                        const template = await res.json();
+                        const templateData = JSON.parse(template.panel_data || '{}');
+                        const panel = templateData.panel || {};
+                        const options = templateData.options || [];
+
+                        // Update title
+                        document.querySelector('.toolbar-title h2').innerHTML = '<i class="fas fa-edit"></i> New Panel from Template';
+
+                        // Fill form with template panel data
+                        document.getElementById('panel-name').value = (panel.name || '') + ' (Copy)';
+                        document.getElementById('embed-title').value = panel.embed_title || '';
+                        document.getElementById('embed-description').value = panel.embed_description || '';
+                        document.getElementById('footer-text').value = panel.embed_footer || '';
+                        document.getElementById('author-name').value = panel.embed_author_name || '';
+                        document.getElementById('image-url').value = panel.embed_image || '';
+                        document.getElementById('thumbnail-url').value = panel.embed_thumbnail || '';
+                        document.getElementById('title-url').value = panel.embed_title_url || '';
+                        document.getElementById('author-url').value = panel.embed_author_url || '';
+                        document.getElementById('author-icon').value = panel.embed_author_icon || '';
+                        document.getElementById('footer-icon').value = panel.embed_footer_icon || '';
+
+                        if (panel.embed_color) {
+                            document.getElementById('embed-color').value = panel.embed_color;
+                            document.getElementById('color-preview').style.background = panel.embed_color;
+                            document.getElementById('discord-embed').style.borderLeftColor = panel.embed_color;
+                        }
+
+                        // Load buttons from template
+                        if (options.length > 0) {
+                            const container = document.querySelector('.buttons-container');
+                            container.innerHTML = '';
+
+                            options.forEach((opt, idx) => {
+                                buttonsData[idx] = {
+                                    isDisabled: opt.is_disabled === 1,
+                                    ticketStyle: opt.ticket_style,
+                                    requiredRoles: opt.required_roles ? (typeof opt.required_roles === 'string' ? JSON.parse(opt.required_roles) : opt.required_roles) : [],
+                                    questions: opt.questions || [],
+                                    ticketMessage: opt.ticket_message,
+                                    welcomeMessage: opt.welcome_message,
+                                    staffThreadMessage: opt.staff_thread_message,
+                                    steamRequired: opt.steam_required === 1,
+                                    pingsEnabled: opt.pings_enabled === 1,
+                                    ticketCategoryId: opt.ticket_category_id,
+                                    nameFormat: opt.ticket_prefix
+                                };
+
+                                container.appendChild(createButtonItem(
+                                    opt.emoji,
+                                    opt.label,
+                                    getHexColor(opt.style)
+                                ));
+                            });
+                        }
+
+                        // Update preview
+                        const titleEl = document.getElementById('preview-title');
+                        titleEl.innerHTML = parseMarkdown(panel.embed_title || 'Title');
+                        titleEl.style.display = panel.embed_title ? 'block' : 'none';
+
+                        const descEl = document.getElementById('preview-description');
+                        descEl.innerHTML = parseMarkdown(panel.embed_description || 'Description');
+                        descEl.style.display = panel.embed_description ? 'block' : 'none';
+
+                        document.getElementById('preview-footer-text').textContent = panel.embed_footer || '';
+                        if (panel.embed_footer) document.getElementById('preview-footer').style.display = 'flex';
+
+                        updateButtonPreview();
+                        return; // Don't continue to load panel
+                    }
+                } catch (e) { console.error('Failed to load template:', e); }
+            }
+
+            if (!panelId) return;
+
+            try {
+                const res = await fetch(`/api/bots/${botId}/guild/${guildId}/panels/${panelId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.ok) {
+                    const panel = await res.json();
+
+                    // Fill form with panel data
+                    document.getElementById('panel-name').value = panel.name || '';
+                    document.getElementById('embed-title').value = panel.embed_title || '';
+                    document.getElementById('embed-description').value = panel.embed_description || '';
+                    document.getElementById('footer-text').value = panel.embed_footer || '';
+                    document.getElementById('author-name').value = panel.embed_author_name || '';
+                    document.getElementById('image-url').value = panel.embed_image || '';
+                    document.getElementById('thumbnail-url').value = panel.embed_thumbnail || '';
+
+                    document.getElementById('title-url').value = panel.embed_title_url || '';
+                    document.getElementById('author-url').value = panel.embed_author_url || '';
+                    document.getElementById('author-icon').value = panel.embed_author_icon || '';
+                    document.getElementById('footer-icon').value = panel.embed_footer_icon || '';
+
+                    if (panel.embed_color) {
+                        document.getElementById('embed-color').value = panel.embed_color;
+                        document.getElementById('color-preview').style.background = panel.embed_color;
+                        document.getElementById('discord-embed').style.borderLeftColor = panel.embed_color;
+                    }
+
+                    // Load buttons & settings
+                    if (panel.options && panel.options.length > 0) {
+                        const container = document.querySelector('.buttons-container');
+                        container.innerHTML = ''; // Clear default
+
+                        panel.options.forEach((opt, idx) => {
+                            // Restore Settings Data
+                            buttonsData[idx] = {
+                                isDisabled: opt.is_disabled === 1,
+                                ticketStyle: opt.ticket_style,
+                                requiredRoles: opt.required_roles ? JSON.parse(opt.required_roles) : [],
+                                questions: opt.questions || [],
+                                ticketMessage: opt.ticket_message,
+                                welcomeMessage: opt.welcome_message,
+                                staffThreadMessage: opt.staff_thread_message,
+                                steamRequired: opt.steam_required === 1,
+                                pingsEnabled: opt.pings_enabled === 1,
+                                nameFormat: opt.ticket_prefix // We map nameFormat to ticket_prefix legacy column for now or new column if added
+                            };
+
+                            // Restore UI
+                            container.appendChild(createButtonItem(
+                                opt.emoji,
+                                opt.label,
+                                getHexColor(opt.style)
+                            ));
+                        });
+                    }
+
+                    // Update preview
+                    const titleEl = document.getElementById('preview-title');
+                    titleEl.innerHTML = parseMarkdown(panel.embed_title || 'Title');
+                    titleEl.style.display = panel.embed_title ? 'block' : 'none';
+
+                    const descEl = document.getElementById('preview-description');
+                    descEl.innerHTML = parseMarkdown(panel.embed_description || 'Description');
+                    descEl.style.display = panel.embed_description ? 'block' : 'none';
+
+                    document.getElementById('preview-footer-text').textContent = panel.embed_footer || '';
+                    if (panel.embed_footer) document.getElementById('preview-footer').style.display = 'flex';
+
+                    if (panel.embed_author_name) {
+                        document.getElementById('preview-author').style.display = 'flex';
+                        document.getElementById('preview-author-name').textContent = panel.embed_author_name;
+                        if (panel.embed_author_icon) document.getElementById('preview-author-icon').src = panel.embed_author_icon;
+                    }
+
+                    if (panel.embed_image) {
+                        document.getElementById('preview-image').src = panel.embed_image;
+                        document.getElementById('preview-image-container').style.display = 'block';
+                    }
+
+                    if (panel.embed_footer_icon) {
+                        const el = document.getElementById('preview-footer-icon');
+                        el.src = panel.embed_footer_icon;
+                        el.style.display = 'block';
+                        document.getElementById('preview-footer').style.display = 'flex';
+                    }
+
+                    updateButtonPreview();
+                }
+            } catch (e) { console.error('Failed to load panel:', e); }
+        }
+
+        // Simple Discord Markdown Parser
+        function parseMarkdown(text) {
+            if (!text) return '';
+
+            // Escape HTML
+            let html = text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+
+            // Bold **text**
+            html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+            // Italic *text* or _text_
+            html = html.replace(/\*(.*?)\*/g, '<i>$1</i>');
+            html = html.replace(/_(.*?)_/g, '<i>$1</i>');
+
+            // Underline __text__
+            html = html.replace(/__(.*?)__/g, '<u>$1</u>');
+
+            // Strike ~~text~~
+            html = html.replace(/~~(.*?)~~/g, '<s>$1</s>');
+
+            // Code `text`
+            html = html.replace(/`(.*?)`/g, '<code style="background:#2f3136; padding:2px 4px; border-radius:3px;">$1</code>');
+
+            // Links [text](url)
+            html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" style="color:#00aff4;">$1</a>');
+
+            // Newlines (handled by pre-wrap css, but explicit br is safe)
+            // html = html.replace(/\n/g, '<br>');
+
+            return html;
+        }
+
+        // Live preview updates
+        document.getElementById('embed-color').addEventListener('input', (e) => {
+            document.getElementById('color-preview').style.background = e.target.value;
+            const embed = document.getElementById('discord-embed');
+            if (embed) embed.style.borderLeftColor = e.target.value;
+        });
+
+        document.getElementById('embed-title').addEventListener('input', (e) => {
+            const el = document.getElementById('preview-title');
+            el.innerHTML = parseMarkdown(e.target.value || 'Title');
+            el.style.display = e.target.value ? 'block' : 'none';
+        });
+
+        document.getElementById('embed-description').addEventListener('input', (e) => {
+            const el = document.getElementById('preview-description');
+            el.innerHTML = parseMarkdown(e.target.value || 'Description');
+            el.style.display = e.target.value ? 'block' : 'none';
+        });
+
+        document.getElementById('footer-text').addEventListener('input', (e) => {
+            document.getElementById('preview-footer-text').textContent = e.target.value;
+            const footer = document.getElementById('preview-footer');
+            footer.style.display = (e.target.value || document.getElementById('footer-icon').value) ? 'flex' : 'none';
+        });
+
+        document.getElementById('author-name').addEventListener('input', (e) => {
+            const el = document.getElementById('preview-author');
+            if (e.target.value) {
+                el.style.display = 'flex';
+                document.getElementById('preview-author-name').textContent = e.target.value;
+            } else {
+                el.style.display = 'none';
+            }
+        });
+
+        function checkSvg(url) {
+            if (url && url.split('?')[0].toLowerCase().endsWith('.svg')) {
+                alert('⚠️ Discord Warning: Embeds do NOT support SVG images. Please use PNG, JPG, or GIF.');
+            }
+        }
+
+        document.getElementById('image-url').addEventListener('input', (e) => {
+            checkSvg(e.target.value);
+            const container = document.getElementById('preview-image-container');
+            const img = document.getElementById('preview-image');
+            const err = document.getElementById('preview-image-error');
+
+            if (e.target.value) {
+                img.style.display = 'block'; // Ensure visible
+                if (err) err.style.display = 'none';  // Hide error
+                img.src = e.target.value;
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        });
+
+        document.getElementById('thumbnail-url').addEventListener('input', (e) => {
+            checkSvg(e.target.value);
+            // Thumbnail not supported in Ticket King specific wide layout usually, or we need to add it side-by-side
+            // For now, if user requested EXACT Ticket King, they usually don't use thumbnails, but I'll leave it hidden or add support if requested.
+            // The HTML structure I added earlier didn't explicitly include a thumbnail container side-by-side.
+            // I'll skip it for now or just log it.
+            // Actually, let's just ignore thumbnail to be "exact" or add it if needed.
+            // I'll leave it as is, effectively disabling visible thumbnail update unless I add the DOM element.
+        });
+
+        document.getElementById('author-icon').addEventListener('input', (e) => {
+            checkSvg(e.target.value);
+            const el = document.getElementById('preview-author-icon');
+            if (e.target.value) {
+                el.src = e.target.value;
+                el.style.display = '';
+            } else {
+                el.style.display = 'none';
+            }
+        });
+
+        document.getElementById('footer-icon').addEventListener('input', (e) => {
+            checkSvg(e.target.value);
+            const el = document.getElementById('preview-footer-icon');
+            const footer = document.getElementById('preview-footer');
+            if (e.target.value) {
+                el.src = e.target.value;
+                el.style.display = 'block';
+                footer.style.display = 'flex';
+            } else {
+                el.style.display = 'none';
+                if (!document.getElementById('footer-text').value) footer.style.display = 'none';
+            }
+        });
+
+        // Button functions
+        const buttonColors = ['#5865f2', '#4e5058', '#3ba55d', '#ed4245'];
+        let colorIndex = 0;
+
+        function cycleButtonColor(el) {
+            colorIndex = (colorIndex + 1) % buttonColors.length;
+            el.style.background = buttonColors[colorIndex];
+            updateButtonPreview();
+        }
+
+        function changeEmoji(el) {
+            openEmojiPicker(el);
+        }
+
+        function createButtonItem(emoji, label, color) {
+            const newBtn = document.createElement('div');
+            newBtn.className = 'button-item';
+            newBtn.innerHTML = `
+                <span class="button-emoji" onclick="changeEmoji(this)">${emoji || '??'}</span>
+                <div class="button-color" style="background: ${color || '#5865f2'};" onclick="cycleButtonColor(this)"></div>
+                <input type="text" class="button-label-input" value="${label || 'New Button'}" placeholder="Button Label" oninput="updateButtonPreview()">
+                <div class="button-actions">
+                    <button class="icon-btn" title="Settings" onclick="openSettings(this)"><i class="fas fa-cog"></i></button>
+                    <button class="icon-btn delete" title="Delete" onclick="deleteButton(this)"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+            return newBtn;
+        }
+
+        function addButton(btn) {
+            const container = btn.previousElementSibling;
+            container.appendChild(createButtonItem());
+            updateButtonPreview();
+        }
+
+        function getHexColor(style) {
+            switch (style) {
+                case 'Secondary': return '#4f545c';
+                case 'Success': return '#3ba55d';
+                case 'Danger': return '#ed4245';
+                default: return '#5865f2'; // Primary
+            }
+        }
+
+        function deleteButton(btn) {
+            btn.closest('.button-item').remove();
+            updateButtonPreview();
+        }
+
+        function addButtonRow() {
+            const rows = document.getElementById('button-rows');
+            const newRow = document.createElement('div');
+            newRow.className = 'button-row';
+            newRow.innerHTML = `
+                <div class="button-row-header">
+                    <span style="font-size: 12px; color: var(--text-muted);"><i class="fas fa-layer-group"></i></span>
+                    <span style="font-size: 12px;">Button Row</span>
+                    <button class="icon-btn delete" style="margin-left: auto;" onclick="this.closest('.button-row').remove(); updateButtonPreview();"><i class="fas fa-trash"></i></button>
+                </div>
+                <div class="buttons-container"></div>
+                <button class="add-btn" onclick="addButton(this)" style="margin-top: 8px;"><i class="fas fa-plus"></i> Add Button</button>
+            `;
+            rows.appendChild(newRow);
+        }
+
+        function addSelectMenu() {
+            alert('Select Menu feature coming soon!');
+        }
+
+        function updateButtonPreview() {
+            const preview = document.getElementById('preview-buttons');
+            preview.innerHTML = '';
+
+            document.querySelectorAll('.button-item').forEach(item => {
+                const emoji = item.querySelector('.button-emoji').textContent;
+                const label = item.querySelector('.button-label-input').value;
+                const color = item.querySelector('.button-color').style.background;
+
+                const btn = document.createElement('div');
+                btn.className = 'tk-discord-btn';
+                btn.style.background = color;
+                btn.innerHTML = `${emoji} ${label}`;
+                preview.appendChild(btn);
+            });
+        }
+
+        // Add input listeners to button labels
+        document.querySelectorAll('.button-label-input').forEach(input => {
+            input.addEventListener('input', updateButtonPreview);
+        });
+
+        // Load channels
+        async function loadChannels() {
+            try {
+                const res = await fetch(`/api/bots/${botId}/guild/${guildId}/channels`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const channels = await res.json();
+                    console.log('Channels loaded:', channels);
+                    const select = document.getElementById('deploy-channel');
+                    availableCategories = channels.filter(c => c.type === 4); // Store categories
+
+                    channels.filter(c => c.type === 0 || c.type === 5).forEach(c => {
+                        select.innerHTML += `<option value="${c.id}" data-name="${c.name}">#${c.name}</option>`;
+                    });
+
+                    // Trigger update if value exists (for edit mode)
+                    if (select.value) {
+                        const opt = select.options[select.selectedIndex];
+                        if (opt) updateChannelPreview(opt.text);
+                    }
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function updateChannelPreview(name) {
+            const tag = document.getElementById('preview-channel-tag');
+            tag.textContent = name || '#select-channel';
+        }
+
+        document.getElementById('deploy-channel').addEventListener('change', (e) => {
+            const opt = e.target.options[e.target.selectedIndex];
+            updateChannelPreview(opt ? opt.text : '#select-channel');
+        });
+
+        // Set date
+        document.getElementById('preview-date').textContent = 'Last updated ' + new Date().toLocaleDateString();
+
+        function resetEditor() {
+            if (confirm('Reset all changes?')) {
+                document.getElementById('panel-name').value = '';
+                document.getElementById('embed-title').value = '**Help & Support**';
+                document.getElementById('embed-description').value = 'Click below to create a new support ticket 🎫';
+                document.getElementById('footer-text').value = 'Powered by KingBot';
+                document.getElementById('embed-color').value = '#d4af37';
+                document.getElementById('color-preview').style.background = '#d4af37';
+
+                // Update preview
+                document.getElementById('preview-title').innerHTML = parseMarkdown('**Help & Support**');
+                document.getElementById('preview-description').innerHTML = parseMarkdown('Click below to create a new support ticket 🎫');
+                document.getElementById('preview-footer-text').textContent = 'Powered by KingBot';
+                const embed = document.getElementById('discord-embed');
+                if (embed) embed.style.borderLeftColor = '#d4af37';
+
+                updateButtonPreview();
+            }
+        }
+
+        async function savePanel() {
+            const btn = document.querySelector('.save-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            btn.disabled = true;
+
+            const name = document.getElementById('panel-name').value;
+            if (!name) {
+                alert('Please enter a panel name');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            const data = {
+                name,
+                messageContent: document.getElementById('message-content').value,
+                title: document.getElementById('embed-title').value,
+                description: document.getElementById('embed-description').value,
+                color: document.getElementById('embed-color').value,
+                authorName: document.getElementById('author-name').value,
+                authorUrl: document.getElementById('author-url').value,
+                authorIcon: document.getElementById('author-icon').value,
+                titleUrl: document.getElementById('title-url').value,
+                imageUrl: document.getElementById('image-url').value,
+                thumbnailUrl: document.getElementById('thumbnail-url').value,
+                footerText: document.getElementById('footer-text').value,
+                footerIcon: document.getElementById('footer-icon').value,
+                channelId: document.getElementById('deploy-channel').value,
+                buttons: []
+            };
+
+            document.querySelectorAll('.button-item').forEach(item => {
+                // Find index to retrieve advanced settings
+                const allItems = Array.from(document.querySelectorAll('.button-item'));
+                const idx = allItems.indexOf(item);
+                const advanced = buttonsData[idx] || {};
+
+                data.buttons.push({
+                    emoji: item.querySelector('.button-emoji').textContent,
+                    label: item.querySelector('.button-label-input').value,
+                    color: item.querySelector('.button-color').style.background,
+                    // Advanced Settings
+                    isDisabled: advanced.isDisabled || false,
+                    ticketStyle: advanced.ticketStyle || 'channel',
+                    ticketCategoryId: advanced.ticketCategoryId || null,
+                    requiredRoles: advanced.requiredRoles || [],
+                    questions: advanced.questions || [],
+                    ticketMessage: advanced.ticketMessage,
+                    welcomeMessage: advanced.welcomeMessage,
+                    staffThreadMessage: advanced.staffThreadMessage,
+                    steamRequired: advanced.steamRequired,
+                    pingsEnabled: advanced.pingsEnabled,
+                    ticketPrefix: advanced.nameFormat // Saving name format as ticketPrefix per backend expectation
+                });
+            });
+
+            try {
+                const url = isEditMode
+                    ? `/api/bots/${botId}/guild/${guildId}/panels/${panelId}`
+                    : `/api/bots/${botId}/guild/${guildId}/panels`;
+
+                const res = await fetch(url, {
+                    method: isEditMode ? 'PUT' : 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    const result = await res.json();
+                    if (result.warning) {
+                        alert('⚠️ ' + result.warning);
+                    } else {
+                        alert(isEditMode ? 'Panel updated successfully!' : 'Panel created successfully!');
+                    }
+                    window.location.href = `/bot/${botId}/guild/${guildId}`;
+                } else {
+                    const err = await res.json();
+                    alert('Error: ' + (err.error || 'Unknown server error'));
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Failed to save panel: Check console for details');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        loadChannels();
+        loadPanel();
+    </script>
+    <script>
+        // Force Header Standardization (Avatar + Logout)
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.id) {
+                const avatarUrl = user.avatar
+                    ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+                    : 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+                const userInfo = document.getElementById('user-info');
+                if (userInfo) {
+                    userInfo.innerHTML = `
+                        <img src="${avatarUrl}" alt="" class="avatar">
+                        <span style="font-weight: 500;">${user.username}</span>
+                        <button onclick="logout()" class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px; margin-left: 10px;">Logout</button>
+                    `;
+                }
+            }
+        });
+
+        // Ensure logout exists
+        if (typeof logout === 'undefined') {
+            window.logout = function () {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login';
+            }
+        }
+    </script>
+    <!-- Emoji Modal -->
+    <div id="emoji-modal" class="modal-overlay"
+        style="display: none; align-items: center; justify-content: center; z-index: 2000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8);">
+        <div class="modal-content" style="width: 380px; max-height: 80vh; display: flex; flex-direction: column;">
+            <!-- Header -->
+            <div
+                style="padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary);">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">😊</span> Select Emoji
+                </h3>
+                <button onclick="closeEmojiModal()"
+                    style="background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"><i
+                        class="fas fa-times"></i></button>
+            </div>
+
+            <!-- Search -->
+            <div style="padding: 12px 16px 8px 16px; background: var(--bg-card);">
+                <div class="search-container" style="margin-bottom: 0;">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="emoji-search" class="emoji-search-input" placeholder="Search emoji..."
+                        oninput="filterEmojis()" autocomplete="off">
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="emoji-nav">
+                <div class="emoji-nav-item active" onclick="switchEmojiTab('server')" title="Server"><i
+                        class="fas fa-server"></i><span>Server</span></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Smileys')" title="Smileys"><i
+                        class="fas fa-face-smile"></i><span>Smileys</span></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Gestures')" title="Gestures"><i
+                        class="fas fa-hand"></i><span>Gestures</span></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Animals')" title="Animals"><i
+                        class="fas fa-paw"></i><span>Animals</span></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Food')" title="Food"><i
+                        class="fas fa-utensils"></i><span>Food</span></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Travel')" title="Travel"><i
+                        class="fas fa-plane"></i><span>Travel</span></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Activities')" title="Activities"><i
+                        class="fas fa-futbol"></i><span>Activities</span></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Objects')" title="Objects"><i
+                        class="fas fa-lightbulb"></i><span>Objects</span></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Symbols')" title="Symbols"><i
+                        class="fas fa-heart"></i><span>Symbols</span></div>
+            </div>
+
+            <!-- Grid -->
+            <div id="emoji-grid" class="emoji-grid"
+                style="padding: 12px 16px 16px 16px; flex: 1; background: var(--bg-card);">
+                <!-- Emojis -->
+            </div>
+
+            <!-- Footer -->
+            <div
+                style="padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary); font-size: 12px; color: var(--text-muted);">
+                <span>Supported: Native & Server Emojis</span>
+                <button class="btn btn-secondary" onclick="useCustomEmoji()"
+                    style="font-size: 11px; padding: 4px 10px; height: 28px;">Use Text Input</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Emoji Picker Logic
+        let currentEmojiTarget = null;
+        let guildEmojis = [];
+
+        async function openEmojiPicker(el) {
+            currentEmojiTarget = el;
+            const modal = document.getElementById('emoji-modal');
+            const grid = document.getElementById('emoji-grid');
+
+            modal.style.display = 'flex';
+
+            if (guildEmojis.length === 0) {
+                grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+                try {
+                    const res = await fetch(`/api/bots/${botId}/guild/${guildId}/emojis`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        guildEmojis = await res.json();
+                        renderEmojis(guildEmojis);
+                    } else {
+                        grid.innerHTML = '<p style="text-align:center; color: var(--error);">Failed to load emojis</p>';
+                    }
+                } catch (e) {
+                    console.error(e);
+                    grid.innerHTML = '<p style="text-align:center; color: var(--error);">Error loading emojis</p>';
+                }
+            } else {
+                renderEmojis(guildEmojis);
+            }
+            switchEmojiTab('server'); // Ensure server tab is active on open
+        }
+
+        // Emoji categories loaded from /js/emoji-data.js
+        // window.emojiCategories is set by that script
+
+        let currentCategory = 'server';
+
+        function switchEmojiTab(category) {
+            currentCategory = category;
+
+            // Update UI
+            document.querySelectorAll('.emoji-nav-item').forEach(el => el.classList.remove('active'));
+            const btn = document.querySelector(`.emoji-nav-item[onclick*="'${category}'"]`);
+            if (btn) btn.classList.add('active');
+
+            // Render
+            renderEmojis(guildEmojis);
+        }
+
+        function renderEmojis(emojis) {
+            const grid = document.getElementById('emoji-grid');
+            let html = '';
+            const searchMode = document.getElementById('emoji-search').value.length > 0;
+
+            if (searchMode) return;
+
+            if (currentCategory === 'server') {
+                // Server Emojis
+                if (emojis && emojis.length > 0) {
+                    html += '<div class="section-divider">Server Emojis</div>';
+                    html += '<div class="emoji-category-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap:8px;">';
+                    emojis.forEach(e => {
+                        const identifier = e.identifier || e.id;
+                        const safeId = identifier.replace(/'/g, "\\'");
+                        html += `<div class="emoji-item" onclick="selectEmoji('${safeId}')" title="${e.name}">
+                            ${e.url ? `<img src="${e.url}">` : e.name}
+                        </div>`;
+                    });
+                    html += '</div>';
+                } else {
+                    html += '<div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 20px;">No server emojis found.</div>';
+                }
+            } else {
+                // Standard Category - currentCategory matches key in window.emojiCategories
+                const emojiData = window.emojiCategories || {};
+                const categoryEmojis = emojiData[currentCategory] || [];
+                const catIcon = categoryEmojis[0] || '';
+
+                html += `<div class="section-divider"><span style="margin-right:6px;">${catIcon}</span>${currentCategory}</div>`;
+                html += '<div class="emoji-category-grid" style="display:flex; flex-wrap:wrap; gap:8px;">';
+                categoryEmojis.forEach(e => {
+                    html += `<div class="emoji-item" onclick="selectEmoji('${e}')">${e}</div>`;
+                });
+                html += '</div>';
+            }
+
+            grid.innerHTML = html;
+        }
+
+        function filterEmojis() {
+            const query = document.getElementById('emoji-search').value.toLowerCase();
+            const grid = document.getElementById('emoji-grid');
+
+            if (!query) {
+                renderEmojis(guildEmojis);
+                return;
+            }
+
+            let html = '';
+
+            // Filter Server
+            const filteredServer = guildEmojis.filter(e => e.name.toLowerCase().includes(query));
+            if (filteredServer.length > 0) {
+                html += '<div class="section-divider">Results: Server</div>';
+                html += '<div class="emoji-category-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap:8px;">';
+                filteredServer.forEach(e => {
+                    const identifier = e.identifier || e.id;
+                    const safeId = identifier.replace(/'/g, "\\'");
+                    html += `<div class="emoji-item" onclick="selectEmoji('${safeId}')" title="${e.name}">
+                        ${e.url ? `<img src="${e.url}">` : e.name}
+                    </div>`;
+                });
+                html += '</div>';
+            }
+
+            if (html === '') {
+                html = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No server emojis found matching "' + query + '"</div>';
+            }
+
+            grid.innerHTML = html;
+        }
+
+        function selectEmoji(emoji) {
+            if (currentEmojiTarget) {
+                currentEmojiTarget.innerHTML = emoji; // Use InnerHTML to show image?
+                // Wait, if I set innerHTML to identifier <a:name:id>, it renders as text.
+
+                // Let's just set textContent for now as that's what the save logic reads.
+                // The saving logic reads: item.querySelector('.button-emoji').textContent
+
+                currentEmojiTarget.textContent = emoji;
+
+                // Visual feedback?
+                // If it's a custom emoji, it might be ugly as text.
+                // But preserving the identifier is key for the bot.
+            }
+            closeEmojiModal();
+            updateButtonPreview();
+        }
+
+        function closeEmojiModal() {
+            document.getElementById('emoji-modal').style.display = 'none';
+            document.getElementById('emoji-search').value = '';
+            switchEmojiTab('server');
+            currentEmojiTarget = null;
+        }
+
+        function useCustomEmoji() {
+            const val = document.getElementById('emoji-search').value;
+            if (val) selectEmoji(val);
+        }
+    </script>
+</body>
+
+</html>

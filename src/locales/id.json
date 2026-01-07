@@ -1,0 +1,73 @@
+{
+    "common": {
+        "success": "Berhasil",
+        "error": "Error",
+        "not_found": "Tidak ditemukan",
+        "no_permission": "Kamu tidak memiliki izin untuk melakukan ini",
+        "invalid_channel": "Ini hanya bisa digunakan di channel tiket"
+    },
+    "ticket": {
+        "created": "✅ Tiket kamu sudah dibuat: {channel}",
+        "already_open": "❌ Kamu sudah punya tiket yang terbuka: {channel}",
+        "closed": "🔒 Tiket Ditutup",
+        "closed_by": "Tiket ini telah ditutup oleh {user}",
+        "claimed": "✋ **{user}** telah mengklaim tiket ini.",
+        "unclaimed": "❌ **{user}** telah melepas klaim tiket ini.",
+        "already_claimed": "❌ Tiket ini sudah diklaim oleh {user}",
+        "user_added": "✅ {user} telah ditambahkan ke tiket ini.",
+        "user_removed": "❌ {user} telah dihapus dari tiket ini.",
+        "cannot_remove_owner": "❌ Tidak bisa menghapus pemilik tiket.",
+        "renamed": "✅ Tiket diganti namanya menjadi **{name}**",
+        "welcome": "Selamat datang {user}! Tim support akan segera membantu kamu.\n\nSilakan jelaskan masalah kamu secara detail.",
+        "auto_close_warning": "⚠️ **Peringatan Auto-Close**\n\nTiket ini akan ditutup otomatis dalam **{hours}** jam karena tidak aktif.\n\nBalas pesan untuk menjaga tiket tetap terbuka.",
+        "auto_closed": "🔒 Tiket ini ditutup otomatis karena tidak aktif."
+    },
+    "panel": {
+        "created": "✅ Panel Dibuat",
+        "sent": "✅ Panel dikirim ke {channel}",
+        "deleted": "🗑️ Panel Dihapus",
+        "not_found": "❌ Panel tidak ditemukan.",
+        "no_buttons": "❌ Panel tidak punya tombol. Tambahkan tombol dulu dengan `/panel add-button`.",
+        "button_added": "✅ Tombol Ditambahkan",
+        "question_added": "✅ Pertanyaan Ditambahkan",
+        "max_questions": "❌ Maksimal 5 pertanyaan per tombol (batas Discord)."
+    },
+    "setup": {
+        "log_channel_set": "Log tiket akan dikirim ke {channel}",
+        "transcript_channel_set": "Transkrip akan dikirim ke {channel}",
+        "category_set": "Tiket baru akan dibuat di: **{name}**",
+        "support_role_added": "{role} sekarang bisa akses semua tiket.",
+        "language_set": "Bahasa diubah ke **{language}**",
+        "auto_close_set": "Tiket akan ditutup otomatis setelah **{hours}** jam tidak aktif.",
+        "auto_close_disabled": "Auto-close telah dinonaktifkan."
+    },
+    "steam": {
+        "linked": "✅ Akun Steam kamu sudah terhubung!\n\n**Steam ID:** `{steamId}`",
+        "unlinked": "✅ Akun Steam kamu sudah dilepas.",
+        "not_linked": "❌ Kamu belum menghubungkan akun Steam.",
+        "user_steam": "🎮 **Info Steam untuk {user}**\n\n**Steam ID:** `{steamId}`",
+        "user_not_linked": "❌ User ini belum menghubungkan akun Steam."
+    },
+    "template": {
+        "saved": "✅ Template **{name}** tersimpan!",
+        "loaded": "✅ Panel dibuat dari template **{name}**",
+        "deleted": "🗑️ Template **{name}** dihapus.",
+        "not_found": "❌ Template tidak ditemukan.",
+        "list_empty": "📋 Belum ada template tersimpan."
+    },
+    "customcmd": {
+        "added": "✅ Custom command `{trigger}` sudah ditambahkan!",
+        "removed": "✅ Custom command `{trigger}` sudah dihapus.",
+        "not_found": "❌ Custom command `{trigger}` tidak ditemukan.",
+        "list_empty": "📋 Belum ada custom command."
+    },
+    "stats": {
+        "title": "📊 Statistik Tiket",
+        "total_tickets": "Total Tiket",
+        "open_tickets": "Terbuka",
+        "closed_tickets": "Tertutup",
+        "avg_response_time": "Rata-rata Waktu Respons",
+        "staff_leaderboard": "👥 Leaderboard Staff",
+        "tickets_by_category": "📁 Tiket per Kategori"
+    }
+}

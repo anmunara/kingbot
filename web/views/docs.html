@@ -1,0 +1,774 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation | KingBot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <style>
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Language State Control */
+        body.lang-en [data-lang="id"] {
+            display: none !important;
+        }
+
+        body.lang-id [data-lang="en"] {
+            display: none !important;
+        }
+
+        /* Layout */
+        .docs-container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-top: 80px;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 300px;
+            position: fixed;
+            top: 80px;
+            bottom: 0;
+            left: 0;
+            padding: 40px;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(15, 15, 15, 0.95);
+            transform: translateX(-100%);
+            z-index: 10;
+        }
+
+        .main-content {
+            margin-left: 300px;
+            padding: 60px 80px;
+            flex: 1;
+            max-width: 900px;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                background: #0f0f0f;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 40px 20px;
+            }
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #fff, #888);
+            -webkit-background-clip: text;
+            /* Vendor prefix added */
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-top: 60px;
+            margin-bottom: 20px;
+            color: white;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-top: 40px;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        p,
+        li {
+            line-height: 1.8;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        /* Links */
+        .sidebar-link {
+            display: block;
+            padding: 12px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            transition: all 0.2s;
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            background: rgba(255, 0, 0, 0.1);
+            color: var(--accent);
+            padding-left: 24px;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: #1e1e1e;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin: 24px 0;
+            position: relative;
+        }
+
+        /* Cards */
+        .info-card {
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 4px solid var(--accent);
+            padding: 24px;
+            border-radius: 0 12px 12px 0;
+            margin: 24px 0;
+        }
+
+        /* Scroll Progress */
+        .scroll-progress {
+            position: fixed;
+            top: 79px;
+            left: 0;
+            height: 2px;
+            background: var(--accent);
+            width: 0%;
+            z-index: 101;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        /* Language Switcher */
+        .lang-switch {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .lang-btn.active {
+            background: var(--bg-tertiary);
+            /* Dark button background */
+            color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+
+<body class="lang-en"> <!-- Default Language English -->
+
+    <!-- Sticky Navbar -->
+    <header
+        style="position: fixed; top: 0; left: 0; right: 0; height: 80px; background: rgba(15,15,15,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 40px;">
+        <a href="/" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 28px;">👑</span>
+            <span style="font-weight: 800; font-size: 20px; letter-spacing: -0.5px; color: white;">KingBot Docs</span>
+        </a>
+
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <div class="lang-switch">
+                <button class="lang-btn active" onclick="setLang('en')">EN</button>
+                <button class="lang-btn" onclick="setLang('id')">ID</button>
+            </div>
+            <a href="/dashboard" class="btn btn-primary" data-lang="en">Go to Dashboard</a>
+            <a href="/dashboard" class="btn btn-primary" data-lang="id">Ke Dashboard</a>
+        </div>
+    </header>
+
+    <div class="scroll-progress" id="scroll-progress"></div>
+
+    <div class="docs-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" id="sidebar">
+            <h4 style="color: white; margin-bottom: 20px; padding-left: 16px;" data-lang="en">Guide</h4>
+            <h4 style="color: white; margin-bottom: 20px; padding-left: 16px;" data-lang="id">Panduan</h4>
+
+            <a href="#introduction" class="sidebar-link" data-lang="en">Introduction</a>
+            <a href="#introduction" class="sidebar-link" data-lang="id">Pendahuluan</a>
+
+            <a href="#getting-started" class="sidebar-link" data-lang="en">Getting Started</a>
+            <a href="#getting-started" class="sidebar-link" data-lang="id">Memulai</a>
+
+            <a href="#commands" class="sidebar-link" data-lang="en">Commands</a>
+            <a href="#commands" class="sidebar-link" data-lang="id">Daftar Perintah</a>
+
+            <a href="#permissions" class="sidebar-link" data-lang="en">Permissions</a>
+            <a href="#permissions" class="sidebar-link" data-lang="id">Izin Bot</a>
+
+            <h4 style="color: white; margin: 20px 0 20px 0; padding-left: 16px;" data-lang="en">Features</h4>
+            <h4 style="color: white; margin: 20px 0 20px 0; padding-left: 16px;" data-lang="id">Fitur</h4>
+
+            <a href="#creating-panels" class="sidebar-link" data-lang="en">Ticket Panels</a>
+            <a href="#creating-panels" class="sidebar-link" data-lang="id">Panel Tiket</a>
+
+            <a href="#welcome-system" class="sidebar-link" data-lang="en">Welcome System</a>
+            <a href="#welcome-system" class="sidebar-link" data-lang="id">Sistem Welcome</a>
+
+            <a href="#embeds" class="sidebar-link" data-lang="en">Embed Messages</a>
+            <a href="#embeds" class="sidebar-link" data-lang="id">Pesan Embed</a>
+
+            <a href="#custom-commands" class="sidebar-link" data-lang="en">Custom Commands</a>
+            <a href="#custom-commands" class="sidebar-link" data-lang="id">Perintah Kustom</a>
+
+            <a href="#templates" class="sidebar-link" data-lang="en">Panel Templates</a>
+            <a href="#templates" class="sidebar-link" data-lang="id">Template Panel</a>
+
+            <a href="#history" class="sidebar-link" data-lang="en">Ticket History</a>
+            <a href="#history" class="sidebar-link" data-lang="id">Riwayat Tiket</a>
+
+            <a href="#invites" class="sidebar-link" data-lang="en">Invite Tracker</a>
+            <a href="#invites" class="sidebar-link" data-lang="id">Pelacak Invite</a>
+
+            <a href="#sticky" class="sidebar-link" data-lang="en">Sticky Messages</a>
+            <a href="#sticky" class="sidebar-link" data-lang="id">Pesan Sticky</a>
+
+            <h4 style="color: white; margin: 20px 0 20px 0; padding-left: 16px;" data-lang="en">Advanced</h4>
+            <h4 style="color: white; margin: 20px 0 20px 0; padding-left: 16px;" data-lang="id">Lanjutan</h4>
+
+            <a href="#settings" class="sidebar-link" data-lang="en">Settings</a>
+            <a href="#settings" class="sidebar-link" data-lang="id">Pengaturan</a>
+
+            <a href="#variables" class="sidebar-link" data-lang="en">Variables</a>
+            <a href="#variables" class="sidebar-link" data-lang="id">Variabel</a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- INTRODUCTION -->
+            <section id="introduction" class="doc-section">
+                <!-- EN -->
+                <div data-lang="en">
+                    <h1>Documentation</h1>
+                    <p>Welcome to the official documentation for KingBot. Learn how to setup, configure, and manage
+                        your support system efficiently.</p>
+                    <div class="info-card">
+                        <strong>Note:</strong> This bot is designed to be a complete replacement for premium ticket
+                        bots, offering unlimited panels and customization for free.
+                    </div>
+                </div>
+                <!-- ID -->
+                <div data-lang="id">
+                    <h1>Dokumentasi</h1>
+                    <p>Selamat datang di dokumentasi resmi KingBot. Pelajari cara mengatur, mengonfigurasi, dan
+                        mengelola sistem support Anda secara efisien.</p>
+                    <div class="info-card">
+                        <strong>Catatan:</strong> Bot ini dirancang untuk menjadi pengganti lengkap bot tiket premium,
+                        menawarkan panel dan kustomisasi tanpa batas secara gratis.
+                    </div>
+                </div>
+            </section>
+
+            <!-- GETTING STARTED -->
+            <section id="getting-started" class="doc-section">
+                <!-- EN -->
+                <div data-lang="en">
+                    <h2>Getting Started</h2>
+                    <p>Setting up KingBot is incredibly simple. You just need to invite the bot and access the
+                        Dashboard.</p>
+
+                    <h3>1. Create an Account</h3>
+                    <p>Register on this website to create your dashboard account.</p>
+
+                    <h3>2. Add Your Bot</h3>
+                    <p>Go to your user dashboard and add your bot's <strong>Token</strong>. This allows you to manage
+                        your own private bot instance.</p>
+                </div>
+                <!-- ID -->
+                <div data-lang="id">
+                    <h2>Memulai</h2>
+                    <p>Menyiapkan KingBot sangatlah mudah. Anda hanya perlu mendaftar dan mengakses Dashboard.</p>
+
+                    <h3>1. Buat Akun</h3>
+                    <p>Daftar di situs web ini untuk membuat akun dashboard Anda.</p>
+
+                    <h3>2. Tambahkan Bot Anda</h3>
+                    <p>Pergi ke dashboard pengguna dan tambahkan <strong>Token</strong> bot Anda. Ini memungkinkan Anda
+                        mengelola instance bot pribadi Anda sendiri.</p>
+                </div>
+            </section>
+
+            <!-- COMMANDS -->
+            <section id="commands" class="doc-section">
+                <!-- EN -->
+                <div data-lang="en">
+                    <h2>Commands</h2>
+                    <p>Here is a list of all available slash commands:</p>
+                    <ul>
+                        <li><code>/panel</code> - Create and manage ticket panels directly from Discord.</li>
+                        <li><code>/ticket add [user]</code> - Add a user to a private ticket.</li>
+                        <li><code>/ticket remove [user]</code> - Remove a user from a ticket.</li>
+                        <li><code>/ticket close</code> - Close the current ticket.</li>
+                        <li><code>/stats</code> - View server analytics and ticket statistics.</li>
+                        <li><code>/setup</code> - Run the initial server configuration.</li>
+                    </ul>
+                </div>
+                <!-- ID -->
+                <div data-lang="id">
+                    <h2>Daftar Perintah (Commands)</h2>
+                    <p>Berikut adalah daftar semua slash command yang tersedia:</p>
+                    <ul>
+                        <li><code>/panel</code> - Buat dan kelola panel tiket langsung dari Discord.</li>
+                        <li><code>/ticket add [user]</code> - Tambahkan pengguna ke tiket pribadi.</li>
+                        <li><code>/ticket remove [user]</code> - Hapus pengguna dari tiket.</li>
+                        <li><code>/ticket close</code> - Tutup tiket saat ini.</li>
+                        <li><code>/stats</code> - Lihat analitik server dan statistik tiket.</li>
+                        <li><code>/setup</code> - Jalankan konfigurasi awal server.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- TICKET PANELS -->
+            <section id="creating-panels" class="doc-section">
+                <!-- EN -->
+                <div data-lang="en">
+                    <h2>Ticket Panels</h2>
+                    <p>Ticket Panels are the core feature. They allow users to open tickets by clicking buttons.</p>
+                    <h3>Creating a Panel</h3>
+                    <ol>
+                        <li>Login to the <a href="/dashboard" style="color: var(--accent);">Dashboard</a> and select
+                            your guild.</li>
+                        <li>Click on the <strong>Panels</strong> tab.</li>
+                        <li>Click <strong>"Create Panel"</strong>.</li>
+                        <li>Use the editor to customize the Embed Message (Title, Description, Color).</li>
+                        <li>Add Buttons (e.g., "Support", "Report"). You can set roles that are tagged for each button.
+                        </li>
+                        <li>Save and Deploy the panel to a channel.</li>
+                    </ol>
+                </div>
+                <!-- ID -->
+                <div data-lang="id">
+                    <h2>Panel Tiket</h2>
+                    <p>Panel Tiket adalah fitur utama. Panel memungkinkan pengguna membuka tiket dengan mengklik tombol.
+                    </p>
+                    <h3>Membuat Panel</h3>
+                    <ol>
+                        <li>Masuk ke <a href="/dashboard" style="color: var(--accent);">Dashboard</a> dan pilih server
+                            Anda.</li>
+                        <li>Klik tab <strong>Panels</strong>.</li>
+                        <li>Klik <strong>"Create Panel"</strong>.</li>
+                        <li>Gunakan editor untuk menyesuaikan Pesan Embed (Judul, Deskripsi, Warna).</li>
+                        <li>Tambahkan Tombol (contoh: "Bantuan", "Lapor"). Anda dapat mengatur role yang akan ditag
+                            untuk setiap tombol.</li>
+                        <li>Simpan dan Pasang (Deploy) panel ke channel Discord.</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- WELCOME SYSTEM -->
+            <section id="welcome-system" class="doc-section">
+                <!-- EN -->
+                <div data-lang="en">
+                    <h2>Welcome System</h2>
+                    <p>Greet new members with style using our Welcome System.</p>
+                    <ul>
+                        <li><strong>Welcome Message:</strong> Send a clean embed or text message when someone joins.
+                        </li>
+                        <li><strong>Welcome Card:</strong> Generate a unique image card with the user's avatar.</li>
+                        <li><strong>Auto-Role:</strong> Automatically assign a role (e.g., "Member") to new users.</li>
+                        <li><strong>Goodbye Message:</strong> Notify when someone leaves the server.</li>
+                    </ul>
+                    <p>Configure this in the <strong>Welcome</strong> tab of your Guild Dashboard.</p>
+                </div>
+                <!-- ID -->
+                <div data-lang="id">
+                    <h2>Sistem Welcome</h2>
+                    <p>Sambut anggota baru dengan gaya menggunakan Sistem Welcome kami.</p>
+                    <ul>
+                        <li><strong>Pesan Welcome:</strong> Kirim pesan embed atau teks yang rapi saat seseorang
+                            bergabung.</li>
+                        <li><strong>Kartu Welcome:</strong> Buat kartu gambar unik dengan avatar pengguna.</li>
+                        <li><strong>Auto-Role:</strong> Berikan role (misalnya, "Member") secara otomatis ke pengguna
+                            baru.</li>
+                        <li><strong>Pesan Goodbye:</strong> Beri tahu saat seseorang meninggalkan server.</li>
+                    </ul>
+                    <p>Konfigurasikan ini di tab <strong>Welcome</strong> pada Dashboard Server Anda.</p>
+                </div>
+            </section>
+
+            <!-- EMBEDS -->
+            <section id="embeds" class="doc-section">
+                <!-- EN -->
+                <div data-lang="en">
+                    <h2>Embed Messages</h2>
+                    <p>Create professional announcements using the Embed Editor.</p>
+                    <p>Go to the <strong>Embeds</strong> tab to create custom messages. You can include:</p>
+                    <ul>
+                        <li>Title and Description</li>
+                        <li>Images and Thumbnails</li>
+                        <li>Author and Footer information</li>
+                        <li>Custom Colors</li>
+                    </ul>
+                    <p>These are perfect for rules channels, info channels, or announcements.</p>
+                </div>
+                <!-- ID -->
+                <div data-lang="id">
+                    <h2>Pesan Embed</h2>
+                    <p>Buat pengumuman profesional menggunakan Editor Embed.</p>
+                    <p>Buka tab <strong>Embeds</strong> untuk membuat pesan kustom. Anda dapat menyertakan:</p>
+                    <ul>
+                        <li>Judul dan Deskripsi</li>
+                        <li>Gambar dan Thumbnail</li>
+                        <li>Informasi Penulis dan Footer</li>
+                        <li>Warna Kustom</li>
+                    </ul>
+                    <p>Ini sangat cocok untuk channel aturan, channel info, atau pengumuman.</p>
+                </div>
+            </section>
+
+            <!-- PERMISSIONS -->
+            <section id="permissions" class="doc-section">
+                <!-- EN -->
+                <div data-lang="en">
+                    <h2>Required Permissions</h2>
+                    <p>To ensure KingBot functions correctly, please grant the following permissions:</p>
+                    <ul>
+                        <li><code>Administrator</code> (Recommended for easiest setup)</li>
+                    </ul>
+                    <p>If you prefer granular permissions, ensure the bot has:</p>
+                    <ul>
+                        <li><strong>Manage Channels:</strong> To create ticket channels and categories.</li>
+                        <li><strong>Manage Roles:</strong> To manage support roles and muted roles.</li>
+                        <li><strong>Manage Webhooks:</strong> For transcripts and logs.</li>
+                        <li><strong>Read & Send Messages:</strong> Core functionality.</li>
+                        <li><strong>Embed Links & Attach Files:</strong> For rich messages and transcripts.</li>
+                        <li><strong>Add Reactions:</strong> For interactive controls.</li>
+                    </ul>
+                </div>
+                <!-- ID -->
+                <div data-lang="id">
+                    <h2>Izin yang Diperlukan (Permissions)</h2>
+                    <p>Untuk memastikan KingBot berfungsi dengan benar, berikan izin berikut:</p>
+                    <ul>
+                        <li><code>Administrator</code> (Disarankan untuk pengaturan termudah)</li>
+                    </ul>
+                    <p>Jika Anda lebih suka izin terperinci (granular), pastikan bot memiliki:</p>
+                    <ul>
+                        <li><strong>Manage Channels:</strong> Untuk membuat saluran dan kategori tiket.</li>
+                        <li><strong>Manage Roles:</strong> Untuk mengelola role support.</li>
+                        <li><strong>Manage Webhooks:</strong> Untuk transkrip dan log.</li>
+                        <li><strong>Read & Send Messages:</strong> Fungsi utama.</li>
+                        <li><strong>Embed Links & Attach Files:</strong> Untuk pesan dan transkrip.</li>
+                        <li><strong>Add Reactions:</strong> Untuk kontrol interaktif.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CUSTOM COMMANDS -->
+            <section id="custom-commands" class="doc-section">
+                <!-- EN -->
+                <div data-lang="en">
+                    <h2>Custom Commands</h2>
+                    <p>Create simple text responses for common questions.</p>
+                    <p>In the <strong>Commands</strong> tab of your Guild Dashboard, you can add triggers like
+                        <code>!ip</code> or <code>!rules</code>.
+                    </p>
+                    <ul>
+                        <li><strong>Trigger:</strong> The text that activates the command (e.g., <code>help</code> for
+                            <code>!help</code>).
+                        </li>
+                        <li><strong>Response:</strong> The message the bot will send.</li>
+                    </ul>
+                </div>
+                <!-- ID -->
+                <div data-lang="id">
+                    <h2>Perintah Kustom</h2>
+                    <p>Buat respons teks sederhana untuk pertanyaan umum.</p>
+                    <p>Pada tab <strong>Commands</strong> di Dashboard Server, Anda dapat menambahkan pemicu seperti
+                        <code>!ip</code> atau <code>!rules</code>.
+                    </p>
+                    <ul>
+                        <li><strong>Trigger:</strong> Teks yang mengaktifkan perintah (misalnya, <code>help</code> untuk
+                            <code>!help</code>).
+                        </li>
+                        <li><strong>Response:</strong> Pesan yang akan dikirim bot.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- TEMPLATES -->
+            <section id="templates" class="doc-section">
+                <!-- EN -->
+                <div data-lang="en">
+                    <h2>Panel Templates</h2>
+                    <p>Save time by reusing your favorite panel layouts.</p>
+                    <p>Go to the <strong>Templates</strong> tab to manage your saved designs.</p>
+                    <ul>
+                        <li><strong>Save as Template:</strong> In the Panel Editor, you can save your current design as
+                            a template.</li>
+                        <li><strong>Use Template:</strong> Quickly load a pre-made design when creating a new panel.
+                        </li>
+                    </ul>
+                </div>
+                <!-- ID -->
+                <div data-lang="id">
+                    <h2>Template Panel</h2>
+                    <p>Hemat waktu dengan menggunakan kembali tata letak panel favorit Anda.</p>
+                    <p>Buka tab <strong>Templates</strong> untuk mengelola desain yang tersimpan.</p>
+                    <ul>
+                        <li><strong>Simpan sebagai Template:</strong> Di Editor Panel, Anda dapat menyimpan desain saat
+                            ini sebagai template.</li>
+                        <li><strong>Gunakan Template:</strong> Muat desain yang sudah jadi dengan cepat saat membuat
+                            panel baru.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- TICKET HISTORY -->
+            <section id="history" class="doc-section">
+                <!-- EN -->
+                <div data-lang="en">
+                    <h2>Ticket History & Transcripts</h2>
+                    <p>View past support conversations even after tickets are closed.</p>
+                    <p>Navigate to the <strong>Tickets</strong> tab in your dashboard.</p>
+                    <ul>
+                        <li><strong>Filter:</strong> Switch between "Open" and "Closed" tickets.</li>
+                        <li><strong>View Transcript:</strong> Click the "View" button to see the full chat history,
+                            including images and embeds.</li>
+                        <li><strong>Permanent Link:</strong> Transcripts are saved permanently and can be shared with
+                            staff.</li>
+                    </ul>
+                </div>
+                <!-- ID -->
+                <div data-lang="id">
+                    <h2>Riwayat & Transkrip Tiket</h2>
+                    <p>Lihat percakapan dukungan masa lalu bahkan setelah tiket ditutup.</p>
+                    <p>Navigasi ke tab <strong>Tickets</strong> di dashboard Anda.</p>
+                    <ul>
+                        <li><strong>Filter:</strong> Beralih antara tiket "Terbuka" dan "Tertutup".</li>
+                        <li><strong>Lihat Transkrip:</strong> Klik tombol "Lihat" untuk melihat riwayat obrolan lengkap,
+                            termasuk gambar dan embed.</li>
+                        <li><strong>Tautan Permanen:</strong> Transkrip disimpan secara permanen dan dapat dibagikan
+                            dengan staf.</li>
+                    </ul>
+                </div>
+            </section>
+            <!-- EN -->
+            <div data-lang="en">
+                <h2>Invite Tracker</h2>
+                <p>Track who is inviting users to your server.</p>
+                <p>The <strong>Invites</strong> tab shows a leaderboard of your top inviters. Current features:</p>
+                <ul>
+                    <li>Real-time invite tracking.</li>
+                    <li>Detection of fake/left invites (coming soon).</li>
+                    <li>Leaderboard display in Dashboard.</li>
+                </ul>
+            </div>
+            <!-- ID -->
+            <div data-lang="id">
+                <h2>Pelacak Invite</h2>
+                <p>Lacak siapa yang mengundang pengguna ke server Anda.</p>
+                <p>Tab <strong>Invites</strong> menampilkan papan peringkat pengundang teratas Anda. Fitur saat ini:
+                </p>
+                <ul>
+                    <li>Pelacakan undangan waktu nyata (real-time).</li>
+                    <li>Deteksi undangan palsu/keluar (segera hadir).</li>
+                    <li>Tampilan Papan Peringkat di Dashboard.</li>
+                </ul>
+            </div>
+            </section>
+
+            <!-- STICKY MESSAGES -->
+            <section id="sticky" class="doc-section">
+                <!-- EN -->
+                <div data-lang="en">
+                    <h2>Sticky Messages</h2>
+                    <p>Ensure important information is always visible at the bottom of a channel.</p>
+                    <p>Navigate to the <strong>Sticky Messages</strong> tab in your dashboard.</p>
+                    <ul>
+                        <li><strong>Select Channel:</strong> Choose which channel to activate the sticky message in.
+                        </li>
+                        <li><strong>Set Content:</strong> Write your message (supports Markdown).</li>
+                        <li><strong>Auto-Resend:</strong> The bot will automatically delete the old message and send a
+                            new one whenever someone types in the channel.</li>
+                    </ul>
+                </div>
+                <!-- ID -->
+                <div data-lang="id">
+                    <h2>Pesan Sticky</h2>
+                    <p>Pastikan informasi penting selalu terlihat di bagian bawah channel.</p>
+                    <p>Navigasi ke tab <strong>Sticky Messages</strong> di dashboard Anda.</p>
+                    <ul>
+                        <li><strong>Pilih Channel:</strong> Pilih channel mana yang akan diaktifkan pesan sticky-nya.
+                        </li>
+                        <li><strong>Atur Konten:</strong> Tulis pesan Anda (mendukung Markdown).</li>
+                        <li><strong>Kirim Ulang Otomatis:</strong> Bot akan secara otomatis menghapus pesan lama dan
+                            mengirim yang baru setiap kali seseorang mengetik di channel.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- SETTINGS -->
+            <section id="settings" class="doc-section">
+                <!-- EN -->
+                <div data-lang="en">
+                    <h2>Settings</h2>
+                    <p>Manage essential server configurations in the <strong>Settings</strong> tab.</p>
+                    <ul>
+                        <li><strong>Log Channel:</strong> Where ticket logs are sent.</li>
+                        <li><strong>Transcript Channel:</strong> Where HTML transcripts of closed tickets are archived.
+                        </li>
+                        <li><strong>Ticket Category:</strong> Default category for new tickets.</li>
+                        <li><strong>Language:</strong> Default bot language for messages.</li>
+                    </ul>
+                </div>
+                <!-- ID -->
+                <div data-lang="id">
+                    <h2>Pengaturan</h2>
+                    <p>Kelola konfigurasi server penting di tab <strong>Settings</strong>.</p>
+                    <ul>
+                        <li><strong>Log Channel:</strong> Tempat log tiket dikirim.</li>
+                        <li><strong>Transcript Channel:</strong> Tempat arsip transkrip HTML tiket yang ditutup.</li>
+                        <li><strong>Kategori Tiket:</strong> Kategori default untuk tiket baru.</li>
+                        <li><strong>Bahasa:</strong> Bahasa bot default untuk pesan.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- VARIABLES -->
+            <section id="variables" class="doc-section">
+                <!-- EN -->
+                <div data-lang="en">
+                    <h2>Ticket Variables</h2>
+                    <p>Use these variables in Ticket Name Format, Welcome Messages, and Embeds:</p>
+                    <ul>
+                        <li><code>{USER}</code> - The user's mention.</li>
+                        <li><code>{USER_NAME}</code> - The user's display name.</li>
+                        <li><code>{USER_ID}</code> - The user's Discord ID.</li>
+                        <li><code>{TICKET_NUMBER}</code> - Unique ticket counter (e.g. 001).</li>
+                        <li><code>{TYPE}</code> - Button name/type (e.g. Support).</li>
+                        <li><code>{GUILD_NAME}</code> - Server name.</li>
+                        <li><code>{MEMBER_COUNT}</code> - Total server members.</li>
+                    </ul>
+                </div>
+                <!-- ID -->
+                <div data-lang="id">
+                    <h2>Variabel Tiket</h2>
+                    <p>Gunakan variabel ini dalam Format Nama Tiket, Pesan Welcome, dan Embed:</p>
+                    <ul>
+                        <li><code>{USER}</code> - Mention pengguna.</li>
+                        <li><code>{USER_NAME}</code> - Nama tampilan pengguna.</li>
+                        <li><code>{USER_ID}</code> - ID Discord pengguna.</li>
+                        <li><code>{TICKET_NUMBER}</code> - Penghitung tiket unik (contoh: 001).</li>
+                        <li><code>{TYPE}</code> - Nama/tipe tombol (contoh: Support).</li>
+                        <li><code>{GUILD_NAME}</code> - Nama server.</li>
+                        <li><code>{MEMBER_COUNT}</code> - Total anggota server.</li>
+                    </ul>
+                </div>
+            </section>
+
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+    <script>
+        // Language Switcher Logic
+        function setLang(lang) {
+            document.body.className = `lang-${lang}`;
+            localStorage.setItem('docs-lang', lang);
+
+            // Update buttons state
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                if (btn.textContent.toLowerCase() === lang) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // Initialize Language
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('docs-lang') || 'en';
+            setLang(savedLang);
+
+            // 1. Sidebar Animation
+            if (window.innerWidth > 1024) {
+                anime({
+                    targets: '.sidebar',
+                    translateX: [-300, 0],
+                    opacity: [0, 1],
+                    easing: 'easeOutExpo',
+                    duration: 1000
+                });
+            }
+
+            anime({
+                targets: '.sidebar-link',
+                translateX: [-20, 0],
+                opacity: [0, 1],
+                delay: anime.stagger(50, { start: 500 }),
+                easing: 'easeOutQuad'
+            });
+
+            // 2. Content Animation
+            anime({
+                targets: '.doc-section',
+                translateY: [20, 0],
+                opacity: [0, 1],
+                delay: anime.stagger(200, { start: 300 }),
+                easing: 'easeOutQuad'
+            });
+
+            // 3. Scroll Progress Bar
+            window.addEventListener('scroll', () => {
+                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (winScroll / height) * 100;
+                document.getElementById('scroll-progress').style.width = scrolled + "%";
+            });
+
+            // 4. Smooth Scroll
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

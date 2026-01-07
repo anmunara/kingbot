@@ -1,0 +1,110 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tickets - Ticket Bot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <a href="/dashboard" class="logo">👑 <span>KingBot</span></a>
+            <div class="user-info" id="user-info"></div>
+        </div>
+    </header>
+
+    <nav class="sidebar">
+        <ul class="sidebar-nav" id="sidebar-nav"></ul>
+    </nav>
+
+    <main class="main-content">
+        <h1 style="margin-bottom: 30px;">📋 Ticket History</h1>
+
+        <div class="card">
+            <div class="table-container">
+                <table id="tickets-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>User</th>
+                            <th>Status</th>
+                            <th>Opened</th>
+                            <th>Closed</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tickets-body">
+                        <tr>
+                            <td colspan="5" style="text-align: center;">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const userData = {{ USER_DATA }};
+        const guildId = window.location.pathname.split('/')[2];
+
+        if (userData) {
+            const avatarUrl = userData.avatar
+                ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`
+                : 'https://cdn.discordapp.com/embed/avatars/0.png';
+            document.getElementById('user-info').innerHTML = `
+        <img src="${avatarUrl}" alt="" class="avatar">
+        <span>${userData.username}</span>
+        <a href="/auth/logout" class="btn btn-secondary" style="padding: 8px 16px;">Logout</a>
+      `;
+        }
+
+        document.getElementById('sidebar-nav').innerHTML = `
+      <li><a href="/server/${guildId}">📊 Overview</a></li>
+      <li><a href="/server/${guildId}/panels">👑 Panels</a></li>
+      <li><a href="/server/${guildId}/tickets" class="active">📋 Tickets</a></li>
+      <li><a href="/server/${guildId}/settings">⚙️ Settings</a></li>
+      <li><a href="/dashboard">← Back to Servers</a></li>
+    `;
+
+        async function loadTickets() {
+            try {
+                const res = await fetch(`/api/guild/${guildId}/tickets?limit=50`);
+                const tickets = await res.json();
+
+                if (tickets.length === 0) {
+                    document.getElementById('tickets-body').innerHTML = `
+            <tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">No tickets yet</td></tr>
+          `;
+                    return;
+                }
+
+                document.getElementById('tickets-body').innerHTML = tickets.map(t => `
+          <tr>
+            <td>#${t.ticket_number}</td>
+            <td>${t.user_id}</td>
+            <td>
+              <span class="badge ${t.status === 'open' ? 'badge-success' : 'badge-error'}">
+                ${t.status}
+              </span>
+            </td>
+            <td>${new Date(t.opened_at).toLocaleString()}</td>
+            <td>${t.closed_at ? new Date(t.closed_at).toLocaleString() : '-'}</td>
+          </tr>
+        `).join('');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        loadTickets();
+    </script>
+</body>
+
+</html>

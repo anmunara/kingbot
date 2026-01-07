@@ -1,0 +1,186 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panels - Ticket Bot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <a href="/dashboard" class="logo">👑 <span>KingBot</span></a>
+            <div class="user-info" id="user-info"></div>
+        </div>
+    </header>
+
+    <nav class="sidebar">
+        <ul class="sidebar-nav" id="sidebar-nav"></ul>
+    </nav>
+
+    <main class="main-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h1>👑 Ticket Panels</h1>
+            <button class="btn btn-primary" onclick="showCreateModal()">+ Create Panel</button>
+        </div>
+
+        <div id="panels-list">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Create Modal -->
+    <div id="create-modal"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="card" style="width: 500px; max-width: 90%;">
+            <div class="card-header">
+                <h2 class="card-title">Create Panel</h2>
+                <button onclick="hideModal()"
+                    style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 20px;">✕</button>
+            </div>
+            <form id="create-form">
+                <div class="form-group">
+                    <label class="form-label">Panel Name</label>
+                    <input type="text" class="form-input" name="name" required placeholder="e.g., Support Panel">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Embed Title</label>
+                    <input type="text" class="form-input" name="title" required placeholder="👑 Open a Ticket">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-input" name="description" rows="3"
+                        placeholder="Click a button below to open a ticket..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Color (hex)</label>
+                    <input type="text" class="form-input" name="color" placeholder="#5865F2">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Create</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const userData = {{ USER_DATA }};
+        const guildId = window.location.pathname.split('/')[2];
+
+        // User info
+        if (userData) {
+            const avatarUrl = userData.avatar
+                ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`
+                : 'https://cdn.discordapp.com/embed/avatars/0.png';
+            document.getElementById('user-info').innerHTML = `
+        <img src="${avatarUrl}" alt="" class="avatar">
+        <span>${userData.username}</span>
+        <a href="/auth/logout" class="btn btn-secondary" style="padding: 8px 16px;">Logout</a>
+      `;
+        }
+
+        // Sidebar
+        document.getElementById('sidebar-nav').innerHTML = `
+      <li><a href="/server/${guildId}">📊 Overview</a></li>
+      <li><a href="/server/${guildId}/panels" class="active">👑 Panels</a></li>
+      <li><a href="/server/${guildId}/tickets">📋 Tickets</a></li>
+      <li><a href="/server/${guildId}/settings">⚙️ Settings</a></li>
+      <li><a href="/dashboard">← Back to Servers</a></li>
+    `;
+
+        async function loadPanels() {
+            try {
+                const res = await fetch(`/api/guild/${guildId}/panels`);
+                const panels = await res.json();
+
+                if (panels.length === 0) {
+                    document.getElementById('panels-list').innerHTML = `
+            <div class="card" style="text-align: center; padding: 60px;">
+              <p style="font-size: 48px; margin-bottom: 20px;">👑</p>
+              <h3>No Panels Yet</h3>
+              <p style="color: var(--text-secondary); margin: 20px 0;">Create your first ticket panel to get started.</p>
+              <button class="btn btn-primary" onclick="showCreateModal()">Create Panel</button>
+            </div>
+          `;
+                    return;
+                }
+
+                document.getElementById('panels-list').innerHTML = `
+          <div class="grid grid-2">
+            ${panels.map(panel => `
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">${panel.name}</h3>
+                  <button class="btn btn-danger" style="padding: 6px 12px;" onclick="deletePanel(${panel.id})">Delete</button>
+                </div>
+                <div style="background: var(--bg-tertiary); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                  <p style="font-weight: 600; color: ${panel.embed_color || '#5865F2'};">${panel.embed_title || 'No title'}</p>
+                  <p style="font-size: 14px; color: var(--text-secondary); margin-top: 8px;">${panel.embed_description || 'No description'}</p>
+                </div>
+                <p style="font-size: 13px; color: var(--text-muted);">
+                  ${panel.options?.length || 0} button(s) • Created ${new Date(panel.created_at).toLocaleDateString()}
+                </p>
+              </div>
+            `).join('')}
+          </div>
+        `;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function showCreateModal() {
+            document.getElementById('create-modal').style.display = 'flex';
+        }
+
+        function hideModal() {
+            document.getElementById('create-modal').style.display = 'none';
+        }
+
+        document.getElementById('create-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const form = new FormData(e.target);
+
+            try {
+                const res = await fetch(`/api/guild/${guildId}/panels`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: form.get('name'),
+                        title: form.get('title'),
+                        description: form.get('description'),
+                        color: form.get('color') || '#5865F2',
+                    }),
+                });
+
+                if (res.ok) {
+                    hideModal();
+                    loadPanels();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        };
+
+        async function deletePanel(id) {
+            if (!confirm('Delete this panel?')) return;
+
+            try {
+                await fetch(`/api/guild/${guildId}/panels/${id}`, { method: 'DELETE' });
+                loadPanels();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        loadPanels();
+    </script>
+</body>
+
+</html>

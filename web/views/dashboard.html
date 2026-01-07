@@ -1,0 +1,359 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Ticket Bot</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+</head>
+
+<body>
+  <header class="header">
+    <div class="container header-content">
+      <a href="/dashboard" class="logo">
+        👑 <span>KingBot</span>
+      </a>
+      <div class="user-info" id="user-info">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 40px 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+      <div>
+        <h1 style="margin-bottom: 10px;">Select a Bot</h1>
+        <p style="color: var(--text-secondary);">
+          Choose a bot to manage. You can then select a specific server.
+        </p>
+      </div>
+      <button class="btn btn-primary" onclick="showAddModal()">+ Add Bot</button>
+    </div>
+
+    <div id="servers-grid" class="grid grid-2">
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Add Bot Modal -->
+  <div id="add-modal"
+    style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="card" style="width: 500px; max-width: 90%;">
+      <div class="card-header">
+        <h2 class="card-title">Add Your Bot</h2>
+        <button onclick="hideModal()"
+          style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 20px;">✕</button>
+      </div>
+
+      <form id="add-bot-form">
+        <div class="form-group">
+          <label class="form-label">Bot Token</label>
+          <input type="password" class="form-input" name="token" required placeholder="Paste your bot token here">
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+            Get your token from <a href="https://discord.com/developers/applications" target="_blank">Discord Developer
+              Portal</a> → Your App → Bot → Reset Token
+          </p>
+        </div>
+
+        <div id="add-error" style="color: var(--error); margin-bottom: 15px; display: none;"></div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Add Bot</button>
+          <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bot Presence Settings Modal -->
+  <div id="settings-modal" class="modal" style="display: none;">
+    <div class="card" style="width: 400px; max-width: 95%;">
+      <div class="card-header">
+        <h2 class="card-title">Bot Presence</h2>
+        <button onclick="hideSettingsModal()"
+          style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:20px;">✕</button>
+      </div>
+      <div style="padding: 24px;">
+        <div class="form-group">
+          <label class="form-label">Activity Type</label>
+          <select id="setting-type" class="form-input">
+            <option value="Playing">Playing</option>
+            <option value="Watching">Watching</option>
+            <option value="Listening">Listening</option>
+            <option value="Streaming">Streaming</option>
+            <option value="Competing">Competing</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Status Text</label>
+          <input type="text" id="setting-name" class="form-input" placeholder="e.g. KingBot v2.0">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Online Status</label>
+          <select id="setting-status" class="form-input">
+            <option value="online">🟢 Online</option>
+            <option value="idle">🌙 Idle</option>
+            <option value="dnd">⛔ Do Not Disturb</option>
+            <option value="invisible">⚪ Invisible</option>
+          </select>
+        </div>
+
+        <div style="margin-top: 10px;">
+          <button class="btn btn-primary" id="save-settings-btn" onclick="saveBotSettings()" style="width: 100%;">Save
+            Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const token = localStorage.getItem('token');
+      const userStr = localStorage.getItem('user');
+
+      // 1. Auth Check
+      if (!token || !userStr) {
+        window.location.href = '/login';
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+      const initial = user.username ? user.username[0].toUpperCase() : '?';
+
+      // Check if user is admin
+      const isAdmin = user.is_admin === 1 || user.is_admin === true;
+      const adminLink = isAdmin ? `<a href="/admin" class="btn btn-warning" style="padding: 4px 12px; font-size: 12px; margin-left:10px;">🔒 Admin</a>` : '';
+
+      document.getElementById('user-info').innerHTML = `
+            <img src="${user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png` : 'https://cdn.discordapp.com/embed/avatars/0.png'}" class="avatar">
+            <span style="font-weight:500;">${user.username}</span>
+            ${adminLink}
+            <button onclick="logout()" class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px; margin-left:10px;">Logout</button>
+      `;
+
+      await loadBots();
+    });
+
+    async function api(url, options = {}) {
+      const token = localStorage.getItem('token');
+      const res = await fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          ...options.headers,
+        },
+      });
+      return res;
+    }
+
+    async function loadBots() {
+      const grid = document.getElementById('servers-grid');
+      try {
+        const res = await api('/api/bots');
+        const data = await res.json();
+        const bots = Array.isArray(data) ? data : (data.bots || []);
+
+        if (bots.length > 0) {
+          grid.innerHTML = bots.map(bot => {
+            const avatar = bot.bot_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png';
+            const statusClass = bot.status === 'running' ? 'badge-success' : bot.status === 'error' ? 'badge-error' : 'badge-warning';
+
+            return `
+                    <div class="card" style="display:flex; flex-direction:column; gap:15px; position:relative; overflow:hidden;">
+                        <div style="display:flex; align-items:center; gap:15px;">
+                            <img src="${avatar}" style="width:48px; height:48px; border-radius:50%; object-fit:cover;">
+                            <div>
+                                <h3 style="margin:0; font-size:1.1rem; color:white;">${bot.bot_name}</h3>
+                                <div style="display:flex; gap:8px; margin-top:5px; flex-wrap:wrap;">
+                                    <span class="badge ${statusClass}" style="padding:2px 8px; font-size:0.75rem;">${bot.status}</span>
+                                    <span style="font-size:0.75rem; opacity:0.6; padding-top:2px;">${bot.guilds_count || 0} Servers</span>
+                                </div>
+                            </div>
+                        </div>
+                         
+                        ${bot.error_message ? `<p style="color: var(--error); font-size: 0.8rem; margin:0;">${bot.error_message}</p>` : ''}
+
+                        <div style="margin-top:auto; display:flex; flex-direction: column; gap: 8px;">
+                            <div style="display:flex; gap:8px;">
+                                ${bot.status === 'running'
+                ? `<button class="btn btn-secondary" onclick="stopBot(${bot.id})" style="flex: 1;">⏹️ Stop</button>`
+                : `<button class="btn btn-success" onclick="startBot(${bot.id})" style="flex: 1;">▶️ Start</button>`
+              }
+                                <a href="/bot/${bot.id}" class="btn btn-primary" style="flex:1; text-align:center; justify-content:center;">Manage</a>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <button class="btn btn-secondary" style="flex:1;" onclick="showSettingsModal(${bot.id}, '${bot.activity_type || 'Playing'}', '${bot.activity_name || 'KingBot'}', '${bot.status_presence || 'online'}')">
+                                    🎭 Profile
+                                </button>
+                                <button class="btn btn-danger" onclick="deleteBot(${bot.id})" style="padding: 10px;">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                `}).join('');
+
+          anime({
+            targets: '.card',
+            translateY: [20, 0],
+            opacity: [0, 1],
+            delay: anime.stagger(100),
+            easing: 'easeOutExpo'
+          });
+
+        } else {
+          grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.1);">
+                        <div style="font-size:40px; margin-bottom:10px;">🤖</div>
+                        <h3 style="color:white; margin-bottom:10px;">No Bots Found</h3>
+                        <p style="color:var(--text-secondary); margin-bottom: 20px;">You haven't added any bots to your account yet.</p>
+                        <button class="btn btn-primary" onclick="showAddModal()">Add Your First Bot</button>
+                    </div>
+                `;
+        }
+      } catch (err) {
+        console.error(err);
+        grid.innerHTML = `<div style="color:var(--error); grid-column:1/-1; text-align:center;">Failed to load bots. <br> <small>${err.message}</small></div>`;
+      }
+    }
+
+    // Bot Actions
+    async function startBot(id) {
+      const btn = event.target;
+      btn.disabled = true;
+      btn.innerHTML = '...';
+      try {
+        const res = await api(`/api/bots/${id}/start`, { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) alert('Error: ' + data.error);
+        loadBots();
+      } catch (error) { console.error(error); }
+    }
+
+    async function stopBot(id) {
+      if (!confirm("Stop this bot?")) return;
+      try {
+        await api(`/api/bots/${id}/stop`, { method: 'POST' });
+        loadBots();
+      } catch (error) { console.error(error); }
+    }
+
+    async function deleteBot(id) {
+      if (!confirm('Delete this bot? This cannot be undone.')) return;
+      try {
+        await api(`/api/bots/${id}`, { method: 'DELETE' });
+        loadBots();
+      } catch (error) { console.error(error); }
+    }
+
+    function showAddModal() {
+      document.getElementById('add-modal').style.display = 'flex';
+    }
+
+    function hideModal() {
+      document.getElementById('add-modal').style.display = 'none';
+      document.getElementById('add-error').style.display = 'none';
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+
+    // Add bot form
+    document.getElementById('add-bot-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const errorEl = document.getElementById('add-error');
+      errorEl.style.display = 'none';
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = 'Adding...';
+
+      try {
+        const res = await api('/api/bots', {
+          method: 'POST',
+          body: JSON.stringify({ token: form.get('token') }),
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          hideModal();
+          e.target.reset();
+          loadBots();
+        } else {
+          errorEl.textContent = data.error;
+          errorEl.style.display = 'block';
+        }
+      } catch (error) {
+        errorEl.textContent = 'Connection error';
+        errorEl.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Add Bot';
+      }
+    };
+
+    // Bot Settings Functions
+    let currentBotId = null;
+
+    window.showSettingsModal = function (botId, type, name, status) {
+      currentBotId = botId;
+      document.getElementById('setting-type').value = type;
+      document.getElementById('setting-name').value = name;
+      document.getElementById('setting-status').value = status;
+      document.getElementById('settings-modal').style.display = 'flex';
+    };
+
+    window.hideSettingsModal = function () {
+      document.getElementById('settings-modal').style.display = 'none';
+      currentBotId = null;
+    };
+
+    window.saveBotSettings = async function () {
+      if (!currentBotId) return;
+
+      const type = document.getElementById('setting-type').value;
+      const name = document.getElementById('setting-name').value;
+      const status = document.getElementById('setting-status').value;
+      const btn = document.getElementById('save-settings-btn');
+
+      btn.disabled = true;
+      btn.innerHTML = 'Saving...';
+
+      try {
+        const res = await api(`/api/bots/${currentBotId}/status`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            activity_type: type,
+            activity_name: name,
+            status_presence: status
+          })
+        });
+
+        if (res.ok) {
+          hideSettingsModal();
+          loadBots(); // Reload to see updates
+        } else {
+          alert('Failed to save settings');
+        }
+      } catch (e) {
+        console.error(e);
+        alert('Error saving settings');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Save Changes';
+      }
+    };
+
+  </script>
+</body>
+
+</html>

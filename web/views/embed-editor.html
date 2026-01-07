@@ -1,0 +1,542 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Embed - Ticket Bot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .preview-container {
+            background: #313338;
+            /* Discord dark theme bg */
+            border-radius: 4px;
+            /* Message group radius */
+            padding: 16px;
+            max-width: 500px;
+            font-family: 'gg sans', 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #dbdee1;
+            position: sticky;
+            top: 20px;
+        }
+
+        .discord-embed {
+            display: flex;
+            background-color: #2b2d31;
+            border-left: 4px solid #1e1f22;
+            border-radius: 4px;
+            padding: 8px 16px 16px 12px;
+            margin-top: 8px;
+            max-width: 520px;
+            /* box-shadow: 0 2px 4px rgba(0,0,0,0.1); */
+        }
+
+        .embed-content {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            overflow-wrap: break-word;
+        }
+
+        .embed-author {
+            display: flex;
+            align-items: center;
+            margin-top: 8px;
+            margin-bottom: 8px;
+        }
+
+        .embed-author-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 8px;
+            object-fit: cover;
+        }
+
+        .embed-author-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .embed-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            text-decoration: none;
+        }
+
+        .embed-description {
+            font-size: 14px;
+            font-weight: 400;
+            color: #dbdee1;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            white-space: pre-wrap;
+            line-height: 1.375rem;
+        }
+
+        .embed-image {
+            margin-top: 16px;
+            border-radius: 4px;
+            max-width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+        }
+
+        .embed-thumbnail {
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 4px;
+            margin-left: 16px;
+            margin-top: 8px;
+            object-fit: contain;
+        }
+
+        .embed-footer {
+            display: flex;
+            align-items: center;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #949ba4;
+            /* Footer text color */
+        }
+
+        .embed-footer-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 8px;
+            object-fit: cover;
+        }
+
+        .form-section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <a href="/dashboard" class="logo">👑 <span>KingBot</span></a>
+            <div class="user-info" id="user-info"></div>
+        </div>
+    </header>
+
+    <div class="container" style="padding-top: 30px; padding-bottom: 30px; min-height: calc(100vh - 70px);">
+        <main class="main-content" style="width: 100%; max-width: 1200px; margin: 0 auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="history.back()" style="padding: 8px 12px;">←
+                        Back</button>
+                    <h1>Edit Embed</h1>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="showSendModal()">📤 Send</button>
+                    <button class="btn btn-primary" onclick="saveEmbed()">💾 Save Changes</button>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 20px; align-items: start; flex-wrap: wrap;">
+                <!-- Editor Form -->
+                <div class="card" style="flex: 1; min-width: 320px;">
+                    <div class="form-group">
+                        <label class="form-label">Internal Name (Dashboard only)</label>
+                        <input type="text" class="form-input" id="name" placeholder="Rules Embed">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Message Content (Outside Embed)</label>
+                        <textarea class="form-input" id="content" rows="2"
+                            placeholder="Text sent above the embed (e.g. @everyone)"></textarea>
+                    </div>
+
+                    <div class="form-section-title">Author</div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Author Name</label>
+                            <input type="text" class="form-input" id="author_name" placeholder="Bot Name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Author URL</label>
+                            <input type="text" class="form-input" id="author_url" placeholder="https://google.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Author Icon URL</label>
+                        <input type="text" class="form-input" id="author_icon_url"
+                            placeholder="https://example.com/icon.png">
+                    </div>
+
+                    <div class="form-section-title">Body</div>
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-input" id="title" placeholder="Server Rules">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Title URL</label>
+                        <input type="text" class="form-input" id="title_url" placeholder="https://google.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-input" id="description" rows="6"
+                            placeholder="Welcome to the server! Please follow these rules..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Color</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="color" id="color-picker" value="#000000"
+                                style="height: 40px; width: 60px; padding: 0; border: none; background: none;">
+                            <input type="text" class="form-input" id="color" placeholder="#000000">
+                        </div>
+                    </div>
+
+                    <div class="form-section-title">Images</div>
+                    <div class="form-group">
+                        <label class="form-label">Thumbnail URL</label>
+                        <input type="text" class="form-input" id="thumbnail_url"
+                            placeholder="https://example.com/logo.png">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Image URL</label>
+                        <input type="text" class="form-input" id="image_url"
+                            placeholder="https://example.com/banner.png">
+                    </div>
+
+                    <div class="form-section-title">Footer</div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Footer Text</label>
+                            <input type="text" class="form-input" id="footer_text" placeholder="Last updated">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Footer Icon URL</label>
+                            <input type="text" class="form-input" id="footer_icon_url"
+                                placeholder="https://example.com/icon.png">
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                        <label class="switch">
+                            <input type="checkbox" id="timestamp">
+                            <span class="slider round"></span>
+                        </label>
+                        <span style="color: var(--text-secondary);">Show Timestamp</span>
+                    </div>
+                </div>
+
+                <!-- Preview -->
+                <div style="width: 420px; flex-shrink: 0; position: sticky; top: 20px;">
+                    <h3 style="margin-bottom: 10px; color: var(--text-secondary);">Preview</h3>
+                    <div class="preview-container">
+                        <!-- Message Content -->
+                        <div id="preview-content"
+                            style="color: #dbdee1; margin-bottom: 8px; font-size: 16px; white-space: pre-wrap;"></div>
+
+                        <div class="discord-embed" id="preview-embed">
+                            <div class="embed-content">
+                                <div class="embed-author" id="preview-author-container" style="display: none;">
+                                    <img src="" class="embed-author-icon" id="preview-author-icon"
+                                        style="display: none;">
+                                    <a href="#" class="embed-author-name" id="preview-author-name"></a>
+                                </div>
+                                <a href="#" class="embed-title" id="preview-title"></a>
+                                <div class="embed-description" id="preview-description"></div>
+                                <img src="" class="embed-image" id="preview-image" style="display: none;">
+                                <div class="embed-footer" id="preview-footer-container" style="display: none;">
+                                    <img src="" class="embed-footer-icon" id="preview-footer-icon"
+                                        style="display: none;">
+                                    <span id="preview-footer-text"></span>
+                                    <span id="preview-timestamp-separator"
+                                        style="margin: 0 4px; display: none;">•</span>
+                                    <span id="preview-timestamp" style="display: none;">Today at 12:00 PM</span>
+                                </div>
+                            </div>
+                            <img src="" class="embed-thumbnail" id="preview-thumbnail" style="display: none;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Send Modal -->
+    <div id="send-modal"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="card" style="width: 500px; max-width: 90%;">
+            <div class="card-header">
+                <h2 class="card-title">Send Embed</h2>
+                <button onclick="hideSendModal()"
+                    style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 20px;">✕</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Select Channel</label>
+                <select class="form-input" id="channel-select">
+                    <option value="">Select a channel...</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" onclick="sendEmbed()" style="flex: 1;">Send Now</button>
+                <button class="btn btn-secondary" onclick="hideSendModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script>
+        // Helper API function with Auth
+        async function api(url, options = {}) {
+            const token = localStorage.getItem('token');
+            const res = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    ...options.headers,
+                },
+            });
+            if (res.status === 401) {
+                window.location.href = '/login';
+                throw new Error('Unauthorized');
+            }
+            return res;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        // Parse User Data
+        const userData = JSON.parse(localStorage.getItem('user'));
+        if (!userData) window.location.href = '/login';
+
+        const pathParts = window.location.pathname.split('/');
+        const botId = pathParts[2];
+        const guildId = pathParts[4];
+        const embedId = pathParts[6];
+
+        if (userData) {
+            const avatarUrl = userData.avatar
+                ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`
+                : 'https://cdn.discordapp.com/embed/avatars/0.png';
+            document.getElementById('user-info').innerHTML = `
+                <img src="${avatarUrl}" alt="" class="avatar">
+                <span>${userData.username}</span>
+                <button onclick="logout()" class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px;">Logout</button>
+            `;
+        }
+
+        // --- Logic ---
+        const inputs = [
+            'name', 'content', 'title', 'description', 'color',
+            'image_url', 'thumbnail_url', 'footer_text', 'footer_icon_url',
+            'author_name', 'author_icon_url', 'author_url', 'title_url'
+        ];
+
+        async function loadData() {
+            try {
+                // Load Embed Data
+                const res = await api(`/api/embeds/${botId}/${guildId}/${embedId}`);
+                const data = await res.json();
+
+                inputs.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = data[id] || '';
+                });
+
+                document.getElementById('timestamp').checked = data.timestamp === 1;
+                document.getElementById('color-picker').value = data.color || '#000000';
+
+                // Load Channels for Modal
+                const channelsRes = await api(`/api/bots/${botId}/guild/${guildId}/channels`);
+                const channels = await channelsRes.json();
+                const select = document.getElementById('channel-select');
+                channels.forEach(c => {
+                    if (c.type === 0) { // Text channels only
+                        const opt = document.createElement('option');
+                        opt.value = c.id;
+                        opt.textContent = '#' + c.name;
+                        if (data.channel_id === c.id) opt.selected = true;
+                        select.appendChild(opt);
+                    }
+                });
+
+                updatePreview();
+
+            } catch (error) {
+                console.error(error);
+                alert('Failed to load embed data');
+            }
+        }
+
+        function updatePreview() {
+            document.getElementById('preview-content').textContent = document.getElementById('content').value;
+
+            const color = document.getElementById('color').value || '#000000';
+            document.getElementById('preview-embed').style.borderLeftColor = color;
+            document.getElementById('color-picker').value = color;
+
+            const title = document.getElementById('title').value;
+            const titleEl = document.getElementById('preview-title');
+            titleEl.textContent = title;
+            titleEl.style.display = title ? 'block' : 'none';
+            titleEl.href = document.getElementById('title_url').value || '#';
+
+            document.getElementById('preview-description').textContent = document.getElementById('description').value;
+
+            // Author
+            const authorName = document.getElementById('author_name').value;
+            const authorContainer = document.getElementById('preview-author-container');
+            const authorIcon = document.getElementById('preview-author-icon');
+            const authorNameEl = document.getElementById('preview-author-name');
+
+            if (authorName) {
+                authorContainer.style.display = 'flex';
+                authorNameEl.textContent = authorName;
+                authorNameEl.href = document.getElementById('author_url').value || '#';
+
+                const iconUrl = document.getElementById('author_icon_url').value;
+                if (iconUrl) {
+                    authorIcon.src = iconUrl;
+                    authorIcon.style.display = 'block';
+                } else {
+                    authorIcon.style.display = 'none';
+                }
+            } else {
+                authorContainer.style.display = 'none';
+            }
+
+            // Images
+            const imageUrl = document.getElementById('image_url').value;
+            const thumbUrl = document.getElementById('thumbnail_url').value;
+            const imgEl = document.getElementById('preview-image');
+            const thumbEl = document.getElementById('preview-thumbnail');
+
+            if (imageUrl) {
+                imgEl.src = imageUrl;
+                imgEl.style.display = 'block';
+            } else {
+                imgEl.style.display = 'none';
+            }
+
+            if (thumbUrl) {
+                thumbEl.src = thumbUrl;
+                thumbEl.style.display = 'block';
+            } else {
+                thumbEl.style.display = 'none';
+            }
+
+            // Footer
+            const footerText = document.getElementById('footer_text').value;
+            const footerIconUrl = document.getElementById('footer_icon_url').value;
+            const timestamp = document.getElementById('timestamp').checked;
+
+            const footerContainer = document.getElementById('preview-footer-container');
+            const footerIcon = document.getElementById('preview-footer-icon');
+            const footerTextEl = document.getElementById('preview-footer-text');
+            const timestampEl = document.getElementById('preview-timestamp');
+            const separator = document.getElementById('preview-timestamp-separator');
+
+            if (footerText || timestamp) {
+                footerContainer.style.display = 'flex';
+
+                if (footerText) {
+                    footerTextEl.textContent = footerText;
+                    if (footerIconUrl) {
+                        footerIcon.src = footerIconUrl;
+                        footerIcon.style.display = 'block';
+                    } else {
+                        footerIcon.style.display = 'none';
+                    }
+                } else {
+                    footerTextEl.textContent = '';
+                    footerIcon.style.display = 'none';
+                }
+
+                if (timestamp) {
+                    timestampEl.style.display = 'block';
+                    separator.style.display = footerText ? 'block' : 'none';
+                } else {
+                    timestampEl.style.display = 'none';
+                    separator.style.display = 'none';
+                }
+
+            } else {
+                footerContainer.style.display = 'none';
+            }
+        }
+
+        // Live preview listeners
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', updatePreview);
+        });
+        document.getElementById('timestamp').addEventListener('change', updatePreview);
+        document.getElementById('color-picker').addEventListener('input', (e) => {
+            document.getElementById('color').value = e.target.value;
+            updatePreview();
+        });
+
+        async function saveEmbed() {
+            const data = {};
+            inputs.forEach(id => data[id] = document.getElementById(id).value);
+            data.timestamp = document.getElementById('timestamp').checked;
+            data.channel_id = document.getElementById('channel-select').value; // Save selected channel preference
+
+            try {
+                await api(`/api/embeds/${botId}/${guildId}/${embedId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(data)
+                });
+                alert('Saved successfully!');
+            } catch (error) {
+                alert('Failed to save');
+            }
+        }
+
+        function showSendModal() {
+            document.getElementById('send-modal').style.display = 'flex';
+        }
+
+        function hideSendModal() {
+            document.getElementById('send-modal').style.display = 'none';
+        }
+
+        async function sendEmbed() {
+            const channelId = document.getElementById('channel-select').value;
+            if (!channelId) return alert('Please select a channel');
+
+            try {
+                // First save current state including channel
+                await saveEmbed();
+
+                const res = await api(`/api/embeds/${botId}/${guildId}/${embedId}/send`, { method: 'POST' });
+                const data = await res.json();
+
+                if (data.success) {
+                    alert('Embed sent successfully!');
+                    hideSendModal();
+                } else {
+                    alert('Failed: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to send');
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+
+</html>

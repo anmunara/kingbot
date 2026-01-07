@@ -1,0 +1,73 @@
+{
+    "common": {
+        "success": "Success",
+        "error": "Error",
+        "not_found": "Not found",
+        "no_permission": "You don't have permission to do this",
+        "invalid_channel": "This can only be used in a ticket channel"
+    },
+    "ticket": {
+        "created": "✅ Your ticket has been created: {channel}",
+        "already_open": "❌ You already have an open ticket: {channel}",
+        "closed": "🔒 Ticket Closed",
+        "closed_by": "This ticket has been closed by {user}",
+        "claimed": "✋ **{user}** has claimed this ticket.",
+        "unclaimed": "❌ **{user}** has unclaimed this ticket.",
+        "already_claimed": "❌ This ticket is already claimed by {user}",
+        "user_added": "✅ {user} has been added to this ticket.",
+        "user_removed": "❌ {user} has been removed from this ticket.",
+        "cannot_remove_owner": "❌ Cannot remove the ticket owner.",
+        "renamed": "✅ Ticket renamed to **{name}**",
+        "welcome": "Welcome {user}! Support will be with you shortly.\n\nPlease describe your issue in detail.",
+        "auto_close_warning": "⚠️ **Auto-Close Warning**\n\nThis ticket will be automatically closed in **{hours}** hours due to inactivity.\n\nReply to keep this ticket open.",
+        "auto_closed": "🔒 This ticket was automatically closed due to inactivity."
+    },
+    "panel": {
+        "created": "✅ Panel Created",
+        "sent": "✅ Panel sent to {channel}",
+        "deleted": "🗑️ Panel Deleted",
+        "not_found": "❌ Panel not found.",
+        "no_buttons": "❌ Panel has no buttons. Add buttons first with `/panel add-button`.",
+        "button_added": "✅ Button Added",
+        "question_added": "✅ Question Added",
+        "max_questions": "❌ Maximum 5 questions per button (Discord limit)."
+    },
+    "setup": {
+        "log_channel_set": "Ticket logs will be sent to {channel}",
+        "transcript_channel_set": "Transcripts will be sent to {channel}",
+        "category_set": "New tickets will be created in: **{name}**",
+        "support_role_added": "{role} will now have access to all tickets.",
+        "language_set": "Language set to **{language}**",
+        "auto_close_set": "Tickets will auto-close after **{hours}** hours of inactivity.",
+        "auto_close_disabled": "Auto-close has been disabled."
+    },
+    "steam": {
+        "linked": "✅ Your Steam account has been linked!\n\n**Steam ID:** `{steamId}`",
+        "unlinked": "✅ Your Steam account has been unlinked.",
+        "not_linked": "❌ You don't have a Steam account linked.",
+        "user_steam": "🎮 **Steam Info for {user}**\n\n**Steam ID:** `{steamId}`",
+        "user_not_linked": "❌ This user doesn't have a Steam account linked."
+    },
+    "template": {
+        "saved": "✅ Template **{name}** saved!",
+        "loaded": "✅ Panel created from template **{name}**",
+        "deleted": "🗑️ Template **{name}** deleted.",
+        "not_found": "❌ Template not found.",
+        "list_empty": "📋 No templates saved yet."
+    },
+    "customcmd": {
+        "added": "✅ Custom command `{trigger}` has been added!",
+        "removed": "✅ Custom command `{trigger}` has been removed.",
+        "not_found": "❌ Custom command `{trigger}` not found.",
+        "list_empty": "📋 No custom commands set up."
+    },
+    "stats": {
+        "title": "📊 Ticket Statistics",
+        "total_tickets": "Total Tickets",
+        "open_tickets": "Open",
+        "closed_tickets": "Closed",
+        "avg_response_time": "Avg Response Time",
+        "staff_leaderboard": "👥 Staff Leaderboard",
+        "tickets_by_category": "📁 Tickets by Category"
+    }
+}

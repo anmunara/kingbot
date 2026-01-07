@@ -1,0 +1,314 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | KingBot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0f0f0f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            color: white;
+        }
+
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .login-card {
+            position: relative;
+            z-index: 10;
+            background: rgba(25, 23, 35, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 50px 40px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .logo-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            /* Fix padding issues */
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(237, 66, 69, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, var(--accent) 0%, #ff6b6b 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            width: 100%;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(237, 66, 69, 0.3);
+        }
+
+        .link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            display: block;
+        }
+
+        .link:hover {
+            color: white;
+        }
+
+        .link span {
+            color: var(--accent);
+        }
+
+        .decoration-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.5;
+        }
+
+        .circle-1 {
+            width: 300px;
+            height: 300px;
+            background: var(--accent);
+            top: -100px;
+            left: -100px;
+            animation: float 10s ease-in-out infinite;
+        }
+
+        .circle-2 {
+            width: 250px;
+            height: 250px;
+            background: #5865F2;
+            bottom: -50px;
+            right: -50px;
+            animation: float 12s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            50% {
+                transform: translate(30px, -30px);
+            }
+        }
+
+        #error-message {
+            background: rgba(237, 66, 69, 0.1);
+            color: #ff6b6b;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+            border: 1px solid rgba(237, 66, 69, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-particles" id="bg-particles"></div>
+    <div class="decoration-circle circle-1"></div>
+    <div class="decoration-circle circle-2"></div>
+
+    <div class="login-card">
+        <div class="logo-icon">👑</div>
+        <h1>Welcome Back</h1>
+        <p>Enter your credentials to continue.</p>
+
+        <div id="error-message"></div>
+
+        <form id="login-form">
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-input" name="email" placeholder="name@example.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" name="password" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submit-btn">Login</button>
+        </form>
+
+        <a href="/register" class="link">Don't have an account? <span>Register</span></a>
+        <a href="/" class="link" style="margin-top: 10px; font-size: 0.8rem;">← Back to Home</a>
+    </div>
+
+    <script>
+        // Animations
+        document.addEventListener('DOMContentLoaded', () => {
+            anime({
+                targets: '.login-card',
+                translateY: [30, 0],
+                opacity: [0, 1],
+                duration: 1200,
+                easing: 'easeOutExpo',
+                delay: 200
+            });
+
+            // Particle system
+            const container = document.getElementById('bg-particles');
+            for (let i = 0; i < 30; i++) {
+                const el = document.createElement('div');
+                el.style.position = 'absolute';
+                el.style.width = Math.random() * 4 + 'px';
+                el.style.height = el.style.width;
+                el.style.background = 'white';
+                el.style.opacity = Math.random() * 0.3;
+                el.style.borderRadius = '50%';
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.top = Math.random() * 100 + 'vh';
+                container.appendChild(el);
+                anime({
+                    targets: el,
+                    translateY: [0, -200],
+                    opacity: [0.3, 0],
+                    delay: Math.random() * 2000,
+                    duration: 3000 + Math.random() * 3000,
+                    loop: true,
+                    easing: 'linear'
+                });
+            }
+        });
+
+        // Form Handler
+        document.getElementById('login-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const errorEl = document.getElementById('error-message');
+
+            btn.innerHTML = 'Signing in...';
+            btn.style.opacity = '0.7';
+            errorEl.style.display = 'none';
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    localStorage.setItem('token', result.token);
+                    localStorage.setItem('user', JSON.stringify(result.user));
+                    // Success Animation
+                    btn.innerHTML = 'Success! 🚀';
+                    btn.style.background = '#4CAF50';
+                    btn.style.borderColor = '#4CAF50';
+
+                    anime({
+                        targets: '.login-card',
+                        scale: [1, 1.02, 1],
+                        easing: 'easeInOutQuad',
+                        duration: 400
+                    });
+
+                    // Redirect after delay
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1000);
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (err) {
+                errorEl.textContent = err.message || 'Login failed';
+                errorEl.style.display = 'block';
+                btn.innerHTML = 'Login';
+                btn.style.opacity = '1';
+
+                // Shake animation on error
+                anime({
+                    targets: '.login-card',
+                    translateX: [-10, 10, -10, 10, 0],
+                    duration: 400,
+                    easing: 'easeInOutQuad'
+                });
+            }
+        };
+    </script>
+</body>
+
+</html>

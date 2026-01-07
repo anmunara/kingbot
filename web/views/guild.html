@@ -1,0 +1,3749 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Dashboard - KingBot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        /* Premium Emoji Picker Styles */
+        .modal-overlay {
+            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.7) !important;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-content {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border) !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+            border-radius: 16px !important;
+            overflow: hidden;
+            animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalPop {
+            from {
+                transform: scale(0.95) translateY(10px);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .emoji-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 450px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        .emoji-category-grid {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+            padding-bottom: 8px;
+        }
+
+        .emoji-category-grid::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .emoji-category-grid::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .emoji-category-grid::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+        }
+
+        .emoji-category-grid::-webkit-scrollbar-thumb:hover {
+            background: var(--border);
+        }
+
+        /* Custom Scrollbar */
+        .emoji-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .emoji-grid::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .emoji-grid::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+        }
+
+        .emoji-grid::-webkit-scrollbar-thumb:hover {
+            background: var(--border);
+        }
+
+        .emoji-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            background: transparent;
+            position: relative;
+        }
+
+        .emoji-item:hover {
+            background: var(--bg-tertiary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        .emoji-item:active {
+            transform: scale(0.95);
+        }
+
+        .emoji-item img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .emoji-search-input {
+            width: 100%;
+            padding: 10px 10px 10px 36px;
+            background: var(--bg-tertiary);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .emoji-search-input:focus {
+            background: var(--bg-secondary);
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
+        }
+
+        .emoji-input-wrapper {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .emoji-input-wrapper:hover {
+            transform: scale(1.05);
+        }
+
+        .emoji-input-wrapper input {
+            cursor: pointer;
+            text-align: center;
+            font-size: 20px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+        }
+
+        .section-divider {
+            grid-column: 1 / -1;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin: 12px 0 8px 4px;
+            padding-top: 8px;
+        }
+
+        .section-divider:first-child {
+            padding-top: 0;
+            margin-top: 0;
+        }
+
+        /* Category Nav */
+        .emoji-nav {
+            display: flex;
+            gap: 4px;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .emoji-nav::-webkit-scrollbar {
+            height: 0px;
+            background: transparent;
+        }
+
+        .emoji-nav-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .emoji-nav-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .emoji-nav-item.active {
+            background: var(--bg-tertiary);
+            color: var(--accent);
+            position: relative;
+        }
+
+        .emoji-nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -9px;
+            /* Adjust based on padding */
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 2px 2px 0 0;
+        }
+    </style>
+</head>
+<style>
+    /* New Dashboard Styles */
+    .hero-header {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow);
+    }
+
+    .stats-grid-small {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    @media (min-width: 640px) {
+        .stats-grid-small {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .stats-grid-small {
+            grid-template-columns: repeat(6, 1fr);
+        }
+    }
+
+    .stat-item-small {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 12px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .stat-item-small:hover {
+        border-color: rgba(250, 224, 34, 0.2);
+        box-shadow: 0 4px 6px -1px rgba(250, 224, 34, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .chart-container {
+        position: relative;
+        height: 200px;
+        width: 100%;
+    }
+
+    .recent-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .recent-table th {
+        text-align: left;
+        padding: 12px;
+        font-size: 14px;
+        color: var(--text-secondary);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .recent-table td {
+        padding: 12px;
+        border-top: 1px solid var(--border-color);
+        font-size: 14px;
+        color: var(--text-primary);
+    }
+
+    .btn-view {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 12px;
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-view:hover {
+        background: rgba(34, 197, 94, 0.2);
+    }
+
+    /* Ticket King Style Panels */
+    .tk-panel-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 24px;
+    }
+
+    /* Top Actions Grid */
+    .tk-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(125px, 100%), 1fr));
+        gap: 4px;
+        margin-bottom: 8px;
+    }
+
+    .tk-action-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+        padding: 8px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .tk-action-btn:hover {
+        background: #40444b;
+    }
+
+    .tk-action-btn img {
+        width: 20px;
+        height: 20px;
+        opacity: 0.8;
+    }
+
+    /* Preview Container */
+    .tk-preview-container {
+        background: radial-gradient(circle at top left, rgba(88, 101, 242, 0.1), transparent 40%), #2f3136;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+    }
+
+    .tk-preview-header {
+        padding: 8px 12px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        color: #b9bbbe;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .tk-preview-content {
+        padding: 16px;
+    }
+
+    /* Discord Embed Proper */
+    .tk-embed {
+        border-left: 4px solid var(--primary);
+        background: #2f3136;
+        /* Often transparent in client, but keeping solid for contrast if needed, actually snippet shows native embed look */
+        /* Native embeds in messages don't have bg unless in a codeblock? 
+           Wait, ticket king snippet shows display-panel with border-left. 
+           In modern discord web, embeds are just content. 
+           But usually tools give them a bg context or just the border.
+           I'll keep it clean. */
+        display: flex;
+        flex-direction: column;
+        background: rgba(47, 49, 54, 0.6);
+        padding: 8px 12px;
+        border-radius: 4px;
+    }
+
+    .tk-embed-author {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+        margin-bottom: 8px;
+    }
+
+    .tk-embed-author img {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+    }
+
+    .tk-embed-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 4px;
+    }
+
+    .tk-embed-desc {
+        font-size: 14px;
+        color: #dcddde;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+
+    .tk-embed-image {
+        margin-top: 12px;
+        border-radius: 4px;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    .tk-embed-footer {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #b9bbbe;
+    }
+
+    .tk-embed-footer img {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+    }
+
+    /* Action Row Buttons */
+    .tk-btns-row {
+        margin-top: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .tk-discord-btn {
+        height: 32px;
+        padding: 0 16px;
+        background-color: #5865F2;
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+        border-radius: 3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: not-allowed;
+        opacity: 0.9;
+        transition: background-color 0.17s ease;
+    }
+
+    .tk-discord-btn img {
+        width: 18px;
+        height: 18px;
+    }
+
+    .tk-discord-btn:hover {
+        background-color: #4752c4;
+    }
+
+    /* Panel Section Redesign */
+    .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .panel-controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex: 1;
+        justify-content: flex-end;
+    }
+
+    .search-box {
+        position: relative;
+        max-width: 300px;
+        width: 100%;
+    }
+
+    .search-input {
+        width: 100%;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        padding: 10px 40px 10px 16px;
+        border-radius: 8px;
+        color: white;
+        outline: none;
+    }
+
+    .search-input:focus {
+        border-color: var(--primary);
+    }
+
+    .panels-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .panel-preview-card {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .panel-actions {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+    }
+
+    .panel-action-btn {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-size: 11px;
+        transition: all 0.2s;
+    }
+
+    .panel-action-btn:hover {
+        background: var(--bg-tertiary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .panel-action-btn i {
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    /* Discord Embed Mockup */
+    .discord-embed {
+        background: #2f3136;
+        border-radius: 4px;
+        padding: 16px;
+        border-left: 4px solid var(--primary);
+        position: relative;
+    }
+
+    .embed-author {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+        margin-bottom: 8px;
+    }
+
+    .embed-author img {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+    }
+
+    .embed-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: white;
+        margin-bottom: 8px;
+    }
+
+    .embed-desc {
+        font-size: 14px;
+        color: #dcddde;
+        white-space: pre-wrap;
+        line-height: 1.4;
+    }
+
+    .embed-footer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: #b9bbbe;
+        margin-top: 12px;
+    }
+
+    .embed-footer img {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+    }
+
+    .discord-action-row {
+        background: #2f3136;
+        padding: 12px;
+        margin-top: 4px;
+        border-radius: 4px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .discord-btn {
+        background: #5865f2;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 3px;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: not-allowed;
+        opacity: 0.9;
+    }
+
+    /* Panel Action Buttons (Red Theme) */
+    .tk-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .tk-action-btn {
+        background: var(--error);
+        color: white;
+        border: 1px solid var(--border-color);
+        padding: 8px;
+        border-radius: 6px;
+        text-align: center;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 13px;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+
+    .tk-action-btn:hover {
+        background: #cc0000;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 0, 0, 0.2);
+    }
+
+    .tk-action-btn.delete {
+        grid-column: span 2;
+        background: #111;
+        border-color: var(--error);
+        color: var(--error);
+    }
+
+    .tk-action-btn.delete:hover {
+        background: var(--error);
+        color: white;
+    }
+</style>
+
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <a href="/dashboard" class="logo">👑 <span>KingBot</span></a>
+            <div class="user-info" id="user-info"></div>
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebar-container"></nav>
+
+    <main class="main-content">
+        <div id="guild-header" style="margin-bottom: 30px;">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <!-- HOME Section -->
+        <div id="section-home" class="section">
+            <!-- Header Section with Animations -->
+            <div class="hero-header overview-hero" style="position: relative; overflow: hidden;">
+                <!-- Animated Background Particles -->
+                <div class="hero-particles"
+                    style="position: absolute; inset: 0; pointer-events: none; overflow: hidden;">
+                    <div class="particle"
+                        style="position: absolute; width: 4px; height: 4px; background: #FAE022; border-radius: 50%; opacity: 0.3;">
+                    </div>
+                    <div class="particle"
+                        style="position: absolute; width: 6px; height: 6px; background: #F26A24; border-radius: 50%; opacity: 0.4;">
+                    </div>
+                    <div class="particle"
+                        style="position: absolute; width: 3px; height: 3px; background: #FAE022; border-radius: 50%; opacity: 0.5;">
+                    </div>
+                </div>
+
+                <div
+                    style="display: flex; flex-direction: column; align-items: center; gap: 20px; position: relative; z-index: 1;">
+                    <div class="overview-icon-wrapper"
+                        style="display: flex; flex-direction: column; align-items: center; text-align: center; opacity: 0; transform: scale(0.8);">
+                        <div style="position: relative;" class="guild-icon-container">
+                            <div class="guild-icon-glow"
+                                style="position: absolute; inset: -10px; border-radius: 50%; background: linear-gradient(to right, #fae022, #f26a24); opacity: 0.4; filter: blur(25px); animation: pulse-glow-ring 3s ease-in-out infinite;">
+                            </div>
+                            <img id="home-guild-icon" src="" alt="Server Icon"
+                                style="position: relative; width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(250, 224, 34, 0.4); box-shadow: 0 10px 40px rgba(250, 224, 34, 0.2);">
+                        </div>
+                        <h2 id="home-guild-name"
+                            style="margin-top: 20px; font-size: 24px; font-weight: 700; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+                            Server Name</h2>
+                    </div>
+
+                    <!-- Small Stats Grid with Stagger Animation -->
+                    <div class="stats-grid-small overview-mini-stats" style="width: 100%; max-width: 900px;">
+                        <div class="stat-item-small mini-stat-animated"
+                            style="opacity: 0; transform: translateY(20px);">
+                            <div class="mini-stat-icon"
+                                style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, rgba(250, 224, 34, 0.15), rgba(250, 224, 34, 0.05)); border: 1px solid rgba(250, 224, 34, 0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; transition: all 0.3s ease;">
+                                <i class="fas fa-users" style="color: #fae022; font-size: 18px;"></i>
+                            </div>
+                            <div id="stat-members" class="mini-stat-number"
+                                style="font-weight: 600; font-size: 18px; color: white;">0</div>
+                            <div
+                                style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">
+                                Members</div>
+                        </div>
+                        <div class="stat-item-small mini-stat-animated"
+                            style="opacity: 0; transform: translateY(20px);">
+                            <div class="mini-stat-icon"
+                                style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05)); border: 1px solid rgba(34, 197, 94, 0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; transition: all 0.3s ease;">
+                                <i class="fas fa-hashtag" style="color: #22C55E; font-size: 18px;"></i>
+                            </div>
+                            <div id="stat-channels" class="mini-stat-number"
+                                style="font-weight: 600; font-size: 18px; color: white;">0</div>
+                            <div
+                                style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">
+                                Channels</div>
+                        </div>
+                        <div class="stat-item-small mini-stat-animated"
+                            style="opacity: 0; transform: translateY(20px);">
+                            <div class="mini-stat-icon"
+                                style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.05)); border: 1px solid rgba(139, 92, 246, 0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; transition: all 0.3s ease;">
+                                <i class="fas fa-shield-alt" style="color: #8B5CF6; font-size: 18px;"></i>
+                            </div>
+                            <div id="stat-roles" class="mini-stat-number"
+                                style="font-weight: 600; font-size: 18px; color: white;">0</div>
+                            <div
+                                style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">
+                                Roles</div>
+                        </div>
+                        <div class="stat-item-small mini-stat-animated"
+                            style="opacity: 0; transform: translateY(20px);">
+                            <div class="mini-stat-icon"
+                                style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05)); border: 1px solid rgba(59, 130, 246, 0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; transition: all 0.3s ease;">
+                                <i class="fas fa-robot" style="color: #3B82F6; font-size: 18px;"></i>
+                            </div>
+                            <div id="stat-bots" class="mini-stat-number"
+                                style="font-weight: 600; font-size: 18px; color: white;">1</div>
+                            <div
+                                style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">
+                                Bots</div>
+                        </div>
+                        <div class="stat-item-small mini-stat-animated"
+                            style="opacity: 0; transform: translateY(20px);">
+                            <div class="mini-stat-icon"
+                                style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, rgba(250, 224, 34, 0.15), rgba(250, 224, 34, 0.05)); border: 1px solid rgba(250, 224, 34, 0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; transition: all 0.3s ease;">
+                                <i class="far fa-smile" style="color: #fae022; font-size: 18px;"></i>
+                            </div>
+                            <div id="stat-emojis" class="mini-stat-number"
+                                style="font-weight: 600; font-size: 18px; color: white;">0</div>
+                            <div
+                                style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">
+                                Emojis</div>
+                        </div>
+                        <div class="stat-item-small mini-stat-animated"
+                            style="opacity: 0; transform: translateY(20px);">
+                            <div class="mini-stat-icon"
+                                style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, rgba(242, 106, 36, 0.15), rgba(242, 106, 36, 0.05)); border: 1px solid rgba(242, 106, 36, 0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; transition: all 0.3s ease;">
+                                <i class="fas fa-sticky-note" style="color: #f26a24; font-size: 18px;"></i>
+                            </div>
+                            <div id="stat-stickers" class="mini-stat-number"
+                                style="font-weight: 600; font-size: 18px; color: white;">0</div>
+                            <div
+                                style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">
+                                Stickers</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Stats Cards with Animation -->
+            <div class="grid grid-3 overview-main-stats" style="margin-bottom: 24px;">
+                <div class="card stat-card overview-stat-card" data-color="gold"
+                    style="border-color: rgba(250, 224, 34, 0.3); background: linear-gradient(135deg, var(--bg-secondary), rgba(250, 224, 34, 0.08)); opacity: 0; transform: translateY(30px); position: relative; overflow: hidden;">
+                    <div class="stat-card-shine"
+                        style="position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(250, 224, 34, 0.1), transparent); transform: translateX(-100%);">
+                    </div>
+                    <div class="stat-value stat-count-up" id="stat-total-tickets" data-value="0"
+                        style="color: #fae022; font-size: 42px; font-weight: 700;">0</div>
+                    <div class="stat-label"
+                        style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #9ca3af;">Total
+                        Tickets</div>
+                </div>
+                <div class="card stat-card overview-stat-card" data-color="green"
+                    style="border-color: rgba(34, 197, 94, 0.3); background: linear-gradient(135deg, var(--bg-secondary), rgba(34, 197, 94, 0.08)); opacity: 0; transform: translateY(30px); position: relative; overflow: hidden;">
+                    <div class="stat-card-shine"
+                        style="position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.1), transparent); transform: translateX(-100%);">
+                    </div>
+                    <div class="stat-value stat-count-up" id="stat-open-tickets" data-value="0"
+                        style="color: #22c55e; font-size: 42px; font-weight: 700;">0</div>
+                    <div class="stat-label"
+                        style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #9ca3af;">Open
+                        Tickets</div>
+                </div>
+                <div class="card stat-card overview-stat-card" data-color="red"
+                    style="border-color: rgba(239, 68, 68, 0.3); background: linear-gradient(135deg, var(--bg-secondary), rgba(239, 68, 68, 0.08)); opacity: 0; transform: translateY(30px); position: relative; overflow: hidden;">
+                    <div class="stat-card-shine"
+                        style="position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.1), transparent); transform: translateX(-100%);">
+                    </div>
+                    <div class="stat-value stat-count-up" id="stat-closed-tickets" data-value="0"
+                        style="color: #ef4444; font-size: 42px; font-weight: 700;">0</div>
+                    <div class="stat-label"
+                        style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #9ca3af;">Closed
+                        Tickets</div>
+                </div>
+            </div>
+
+            <div class="grid grid-2 overview-charts" style="margin-bottom: 24px;">
+                <!-- Ticket Distribution -->
+                <div class="card overview-chart-card" style="opacity: 0; transform: translateX(-30px);">
+                    <div class="card-header"
+                        style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                        <h3 class="card-title" style="display: flex; align-items: center; gap: 10px;">
+                            <span
+                                style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: linear-gradient(135deg, rgba(250, 224, 34, 0.2), rgba(242, 106, 36, 0.1)); border-radius: 8px;">
+                                <i class="fas fa-chart-pie" style="color: #FAE022; font-size: 14px;"></i>
+                            </span>
+                            Ticket Distribution
+                        </h3>
+                    </div>
+                    <div style="display: flex; justify-content: center; padding: 20px;">
+                        <div style="width: 200px; height: 200px; position: relative;">
+                            <canvas id="distributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Last 7 Days Activity -->
+                <div class="card overview-chart-card" style="opacity: 0; transform: translateX(30px);">
+                    <div class="card-header"
+                        style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                        <h3 class="card-title" style="display: flex; align-items: center; gap: 10px;">
+                            <span
+                                style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1)); border-radius: 8px;">
+                                <i class="fas fa-chart-line" style="color: #22C55E; font-size: 14px;"></i>
+                            </span>
+                            Last 7 Days Activity
+                        </h3>
+                    </div>
+                    <div style="padding: 10px;">
+                        <div class="chart-container">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Tickets -->
+            <div class="card overview-recent-card" style="opacity: 0; transform: translateY(30px);">
+                <div class="card-header"
+                    style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 class="card-title" style="display: flex; align-items: center; gap: 10px;">
+                        <span
+                            style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1)); border-radius: 8px;">
+                            <i class="fas fa-history" style="color: #8B5CF6; font-size: 14px;"></i>
+                        </span>
+                        Recent Tickets
+                    </h3>
+                    <span
+                        style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 4px 12px; border-radius: 9999px; font-size: 11px; color: #9ca3af;">LATEST</span>
+                </div>
+                <div class="table-container">
+                    <table class="recent-table">
+                        <thead>
+                            <tr>
+                                <th>Ticket</th>
+                                <th>Status</th>
+                                <th>User</th>
+                                <th>Opened</th>
+                                <th>Closed</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="home-recent-tickets">
+                            <tr>
+                                <td colspan="6" class="loading">
+                                    <div class="spinner"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            /* Overview Animations */
+            @keyframes pulse-glow-ring {
+
+                0%,
+                100% {
+                    opacity: 0.3;
+                    transform: scale(1);
+                }
+
+                50% {
+                    opacity: 0.6;
+                    transform: scale(1.1);
+                }
+            }
+
+            @keyframes float-particle {
+
+                0%,
+                100% {
+                    transform: translateY(0) translateX(0);
+                }
+
+                25% {
+                    transform: translateY(-20px) translateX(10px);
+                }
+
+                50% {
+                    transform: translateY(-10px) translateX(-10px);
+                }
+
+                75% {
+                    transform: translateY(-30px) translateX(5px);
+                }
+            }
+
+            @keyframes shine-sweep {
+                0% {
+                    transform: translateX(-100%);
+                }
+
+                100% {
+                    transform: translateX(100%);
+                }
+            }
+
+            .hero-particles .particle:nth-child(1) {
+                top: 10%;
+                left: 20%;
+                animation: float-particle 8s ease-in-out infinite;
+            }
+
+            .hero-particles .particle:nth-child(2) {
+                top: 30%;
+                right: 15%;
+                animation: float-particle 10s ease-in-out infinite 1s;
+            }
+
+            .hero-particles .particle:nth-child(3) {
+                bottom: 20%;
+                left: 40%;
+                animation: float-particle 7s ease-in-out infinite 0.5s;
+            }
+
+            .mini-stat-animated:hover .mini-stat-icon {
+                transform: scale(1.15) rotate(5deg);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            }
+
+            .overview-stat-card {
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                cursor: pointer;
+            }
+
+            .overview-stat-card:hover {
+                transform: translateY(-8px) !important;
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            }
+
+            .overview-stat-card:hover .stat-card-shine {
+                animation: shine-sweep 0.8s ease-in-out;
+            }
+
+            .overview-chart-card,
+            .overview-recent-card {
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .overview-chart-card:hover,
+            .overview-recent-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            }
+
+            .guild-icon-container {
+                transition: all 0.4s ease;
+            }
+
+            .guild-icon-container:hover {
+                transform: scale(1.05);
+            }
+
+            .guild-icon-container:hover .guild-icon-glow {
+                opacity: 0.7;
+                filter: blur(30px);
+            }
+        </style>
+        </div>
+
+        <!-- PANELS Section -->
+        <div id="section-panels" class="section" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2><i class="fas fa-layer-group"></i> Ticket Panels</h2>
+                <button class="btn btn-primary"
+                    onclick="window.location.href=`/bot/${botId}/guild/${guildId}/panel/new`">+ Create Panel</button>
+            </div>
+            <div id="panels-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TEMPLATES Section -->
+        <div id="section-templates" class="section" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2><i class="fas fa-copy"></i> Panel Templates</h2>
+            </div>
+            <div id="templates-list">
+                <div class="card" style="text-align: center; padding: 40px;">
+                    <p style="color: var(--text-muted);">Save panel configurations as templates for quick reuse.</p>
+                    <p style="color: var(--text-secondary); margin-top: 10px;">Use /template save in Discord to save a
+                        panel as template.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TICKETS Section -->
+        <div id="section-tickets" class="section" style="display: none;">
+            <h2 style="margin-bottom: 20px;"><i class="fas fa-history"></i> Ticket History</h2>
+            <div class="card">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>User</th>
+                                <th>Status</th>
+                                <th>Opened</th>
+                                <th>Closed</th>
+                                <th>Transcript</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tickets-body">
+                            <tr>
+                                <td colspan="6" class="loading">
+                                    <div class="spinner"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMMANDS Section -->
+        <div id="section-commands" class="section" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2><i class="fas fa-terminal"></i> Custom Commands</h2>
+                <button class="btn btn-primary" onclick="showModal('command-modal')">+ Add Command</button>
+            </div>
+            <div id="commands-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATS Section -->
+        <div id="section-stats" class="section" style="display: none;">
+            <!-- Header & Time Selector -->
+            <div class="stats-header"
+                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+                <div>
+                    <h2 style="margin: 0; display: flex; align-items: center; gap: 12px;">
+                        <span class="stats-icon-pulse"
+                            style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: linear-gradient(135deg, rgba(250, 224, 34, 0.2), rgba(242, 106, 36, 0.2)); border-radius: 12px; animation: pulse-glow 2s ease-in-out infinite;">
+                            <i class="fas fa-chart-bar"></i>
+                        </span>
+                        Server Statistics & Analytics
+                    </h2>
+                    <p style="color: var(--text-secondary); margin-top: 8px;">Real-time ticket statistics and
+                        performance metrics.</p>
+                </div>
+                <select id="stats-time-range" class="form-select"
+                    style="width: 160px; position: relative; z-index: 100; cursor: pointer;" onchange="loadStats()">
+                    <option value="7">📅 Past Week</option>
+                    <option value="30">📅 Past Month</option>
+                    <option value="365">📅 Past Year</option>
+                    <option value="0">📅 All Time</option>
+                </select>
+            </div>
+
+            <!-- Stat Cards with Animation Classes -->
+            <div class="grid grid-3 stats-cards-container" style="margin-bottom: 24px;">
+                <div class="card stat-card-animated" data-stat="opened"
+                    style="position: relative; overflow: hidden; padding: 0; opacity: 0; transform: translateY(30px);">
+                    <div class="stat-card-glow"
+                        style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: linear-gradient(to bottom, #FAE022, #F26A24);">
+                    </div>
+                    <div class="stat-card-shimmer"
+                        style="position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(250, 224, 34, 0.05), transparent); transform: translateX(-100%);">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 16px; padding: 20px; padding-left: 24px;">
+                        <div class="stat-icon-container"
+                            style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, rgba(250, 224, 34, 0.15), rgba(250, 224, 34, 0.05)); border: 1px solid rgba(250, 224, 34, 0.2); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-folder-open" style="color: #FAE022; font-size: 24px;"></i>
+                        </div>
+                        <div>
+                            <p
+                                style="color: #9ca3af; font-size: 13px; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Opened Tickets</p>
+                            <p id="stats-opened" class="stat-number" data-value="0"
+                                style="font-size: 36px; font-weight: 700; color: white; margin: 4px 0 0 0; font-family: 'Inter', sans-serif;">
+                                0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card stat-card-animated" data-stat="closed"
+                    style="position: relative; overflow: hidden; padding: 0; opacity: 0; transform: translateY(30px);">
+                    <div class="stat-card-glow"
+                        style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: linear-gradient(to bottom, #22C55E, #16A34A);">
+                    </div>
+                    <div class="stat-card-shimmer"
+                        style="position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.05), transparent); transform: translateX(-100%);">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 16px; padding: 20px; padding-left: 24px;">
+                        <div class="stat-icon-container"
+                            style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05)); border: 1px solid rgba(34, 197, 94, 0.2); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-check-circle" style="color: #22C55E; font-size: 24px;"></i>
+                        </div>
+                        <div>
+                            <p
+                                style="color: #9ca3af; font-size: 13px; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Closed Tickets</p>
+                            <p id="stats-closed" class="stat-number" data-value="0"
+                                style="font-size: 36px; font-weight: 700; color: white; margin: 4px 0 0 0; font-family: 'Inter', sans-serif;">
+                                0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card stat-card-animated" data-stat="avg"
+                    style="position: relative; overflow: hidden; padding: 0; opacity: 0; transform: translateY(30px);">
+                    <div class="stat-card-glow"
+                        style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: linear-gradient(to bottom, #8B5CF6, #7C3AED);">
+                    </div>
+                    <div class="stat-card-shimmer"
+                        style="position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.05), transparent); transform: translateX(-100%);">
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 16px; padding: 20px; padding-left: 24px;">
+                        <div class="stat-icon-container"
+                            style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.05)); border: 1px solid rgba(139, 92, 246, 0.2); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-clock" style="color: #8B5CF6; font-size: 24px;"></i>
+                        </div>
+                        <div>
+                            <p
+                                style="color: #9ca3af; font-size: 13px; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Avg Resolution</p>
+                            <p id="stats-avg-time"
+                                style="font-size: 36px; font-weight: 700; color: white; margin: 4px 0 0 0; font-family: 'Inter', sans-serif;">
+                                N/A</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="stats-charts-container"
+                style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-bottom: 24px;">
+                <!-- Ticket Status Donut -->
+                <div class="card chart-card-animated" style="opacity: 0; transform: translateX(-30px);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+                        <h3 style="display: flex; align-items: center; gap: 8px; margin: 0;">
+                            <i class="fas fa-chart-pie" style="color: #FAE022;"></i> Ticket Status
+                        </h3>
+                        <span
+                            style="background: linear-gradient(135deg, rgba(250, 224, 34, 0.1), rgba(242, 106, 36, 0.1)); border: 1px solid rgba(250, 224, 34, 0.2); padding: 4px 12px; border-radius: 9999px; font-size: 11px; color: #FAE022; font-weight: 500;">LIVE</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center;">
+                        <div style="position: relative;">
+                            <canvas id="stats-donut-chart" style="max-width: 200px; max-height: 200px;"></canvas>
+                            <div id="donut-center-label"
+                                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                <div style="font-size: 24px; font-weight: 700; color: white;">0</div>
+                                <div style="font-size: 11px; color: #9ca3af; text-transform: uppercase;">Total</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 32px; margin-top: 20px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div
+                                    style="width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(135deg, #FAE022, #F26A24);">
+                                </div>
+                                <span style="font-size: 14px; color: #d1d5db;">Open (<span
+                                        id="donut-opened">0</span>)</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div
+                                    style="width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(135deg, #22C55E, #16A34A);">
+                                </div>
+                                <span style="font-size: 14px; color: #d1d5db;">Closed (<span
+                                        id="donut-closed">0</span>)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Volume Trends Line Chart -->
+                <div class="card chart-card-animated" style="opacity: 0; transform: translateX(30px);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+                        <h3 style="display: flex; align-items: center; gap: 8px; margin: 0;">
+                            <i class="fas fa-chart-line" style="color: #FAE022;"></i> Ticket Volume Trends
+                        </h3>
+                        <span
+                            style="background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 9999px; font-size: 12px; color: #9ca3af;">Selected
+                            Period</span>
+                    </div>
+                    <div style="height: 220px; position: relative;">
+                        <canvas id="stats-volume-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            @keyframes pulse-glow {
+
+                0%,
+                100% {
+                    box-shadow: 0 0 0 0 rgba(250, 224, 34, 0.4);
+                }
+
+                50% {
+                    box-shadow: 0 0 20px 5px rgba(250, 224, 34, 0.2);
+                }
+            }
+
+            @keyframes shimmer {
+                0% {
+                    transform: translateX(-100%);
+                }
+
+                100% {
+                    transform: translateX(100%);
+                }
+            }
+
+            .stat-card-animated:hover .stat-card-shimmer {
+                animation: shimmer 1.5s ease-in-out;
+            }
+
+            .stat-card-animated:hover {
+                transform: translateY(-4px) !important;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            }
+
+            .stat-card-animated {
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .stat-icon-container {
+                transition: all 0.3s ease;
+            }
+
+            .stat-card-animated:hover .stat-icon-container {
+                transform: scale(1.1) rotate(5deg);
+            }
+
+            .chart-card-animated {
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .chart-card-animated:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            }
+        </style>
+
+
+        <!-- SETTINGS Section -->
+        <div id="section-settings" class="section" style="display: none;">
+            <h2 style="margin-bottom: 20px;"><i class="fas fa-cogs"></i> Server Settings</h2>
+            <form id="settings-form">
+                <div class="grid grid-2">
+                    <div class="card">
+                        <h3 style="margin-bottom: 20px;"><i class="fas fa-hashtag"></i> Channels</h3>
+                        <div class="form-group">
+                            <label class="form-label">Log Channel</label>
+                            <select class="form-select" id="setting-log-channel">
+                                <option value="">None</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Transcript Channel</label>
+                            <select class="form-select" id="setting-transcript-channel">
+                                <option value="">None</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Ticket Category</label>
+                            <select class="form-select" id="setting-category">
+                                <option value="">None</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-bottom: 20px;"><i class="fas fa-sliders-h"></i> Options</h3>
+                        <div class="form-group">
+                            <label class="form-label">Language</label>
+                            <select class="form-select" id="setting-language">
+                                <option value="en">English (US)</option>
+                                <option value="id">Bahasa Indonesia</option>
+                                <option value="es">Español</option>
+                                <option value="fr">Français</option>
+                                <option value="de">Deutsch</option>
+                                <option value="ja">日本語</option>
+                                <option value="ko">한국어</option>
+                                <option value="zh">中文</option>
+                                <option value="ru">Русский</option>
+                                <option value="pt">Português</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Timezone</label>
+                            <select class="form-select" id="setting-timezone">
+                                <option value="UTC">UTC (Coordinated Universal Time)</option>
+                                <option value="Asia/Jakarta">Asia/Jakarta (WIB)</option>
+                                <option value="Asia/Makassar">Asia/Makassar (WITA)</option>
+                                <option value="Asia/Jayapura">Asia/Jayapura (WIT)</option>
+                                <option value="America/New_York">America/New_York (EST/EDT)</option>
+                                <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
+                                <option value="Europe/London">Europe/London (GMT/BST)</option>
+                                <option value="Europe/Paris">Europe/Paris (CET/CEST)</option>
+                                <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+                                <option value="Australia/Sydney">Australia/Sydney (AEST)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Auto-Close Hours (0 = disabled)</label>
+                            <input type="number" class="form-input" id="setting-auto-close" min="0" max="168" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Support Roles</label>
+                            <select class="form-select" id="setting-support-role">
+                                <option value="">Select role to add...</option>
+                            </select>
+                            <div id="support-roles-list" style="margin-top: 10px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 20px;"><i class="fas fa-save"></i> Save
+                    Settings</button>
+                <span id="save-status" style="margin-left: 15px;"></span>
+            </form>
+        </div>
+
+        <!-- VOUCH Section -->
+        <div id="section-vouch" class="section" style="display: none;">
+            <div class="panel-header">
+                <div>
+                    <h2 style="margin-bottom: 8px;">⭐ Vouch System</h2>
+                    <p style="color: var(--text-secondary);">Configure automated vouch logging.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-2">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">Configuration</h3>
+                    <div class="form-group">
+                        <label class="form-label">Vouch Log Channel</label>
+                        <select class="form-select" id="setting-vouch-channel">
+                            <option value="">None - Disable Vouch Logs</option>
+                        </select>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
+                            The bot will send a log message to this channel whenever a user rates the server.
+                        </p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Embed Title</label>
+                        <input type="text" class="form-input" id="vouch-title"
+                            placeholder="? BERI VOUCH KE SERVER KAMI ?">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Embed Description</label>
+                        <textarea class="form-input" id="vouch-desc" rows="4"
+                            placeholder="Halo {user}, terima kasih..."></textarea>
+                        <p style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Variables: {user}</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Success Message</label>
+                        <input type="text" class="form-input" id="vouch-response"
+                            placeholder="{user}, Terimakasih sudah memberikan vouch! 💖">
+                    </div>
+
+                    <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
+                        <h4 style="margin-bottom: 15px; color: var(--text-primary);">Log Embed Customization</h4>
+                        <div class="form-group">
+                            <label class="form-label">Log Title</label>
+                            <input type="text" class="form-input" id="vouch-log-title"
+                                placeholder="? USER MEMBERIKAN VOUCH">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Log Description</label>
+                            <input type="text" class="form-input" id="vouch-log-desc"
+                                placeholder="{user} memberikan rating {rating} Bintang!">
+                            <p style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Variables:
+                                {user}, {rating}</p>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="saveVouchSettings()"><i class="fas fa-save"></i> Save
+                        Configuration</button>
+                    <span id="vouch-save-status" style="margin-left: 10px;"></span>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">Button Customization</h3>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px;">Customize the 5
+                        rating buttons.</p>
+
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div
+                            style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 10px; font-weight: bold; font-size: 12px; color: var(--text-muted); text-transform: uppercase;">
+                            <span>#</span>
+                            <span>Label</span>
+                            <span>Emoji</span>
+                        </div>
+
+                        <!-- 1 -->
+                        <div
+                            style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 10px; align-items: center;">
+                            <span
+                                style="background: rgba(88, 101, 242, 0.1); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</span>
+                            <input type="text" class="form-input" id="vouch-btn-label-1" value="1"
+                                style="height: 38px;">
+                            <div class="emoji-input-wrapper" style="cursor: pointer;" onclick="openVouchEmojiPicker(1)">
+                                <input type="text" class="form-input" id="vouch-btn-emoji-1" value="?"
+                                    style="height: 38px; cursor: pointer;" readonly onclick="openVouchEmojiPicker(1)">
+                            </div>
+                        </div>
+
+                        <!-- 2 -->
+                        <div
+                            style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 10px; align-items: center;">
+                            <span
+                                style="background: rgba(88, 101, 242, 0.1); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">2</span>
+                            <input type="text" class="form-input" id="vouch-btn-label-2" value="2"
+                                style="height: 38px;">
+                            <div class="emoji-input-wrapper" style="cursor: pointer;" onclick="openVouchEmojiPicker(2)">
+                                <input type="text" class="form-input" id="vouch-btn-emoji-2" value="?"
+                                    style="height: 38px; cursor: pointer;" readonly onclick="openVouchEmojiPicker(2)">
+                            </div>
+                        </div>
+
+                        <!-- 3 -->
+                        <div
+                            style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 10px; align-items: center;">
+                            <span
+                                style="background: rgba(88, 101, 242, 0.1); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">3</span>
+                            <input type="text" class="form-input" id="vouch-btn-label-3" value="3"
+                                style="height: 38px;">
+                            <div class="emoji-input-wrapper" style="cursor: pointer;" onclick="openVouchEmojiPicker(3)">
+                                <input type="text" class="form-input" id="vouch-btn-emoji-3" value="?"
+                                    style="height: 38px; cursor: pointer;" readonly onclick="openVouchEmojiPicker(3)">
+                            </div>
+                        </div>
+
+                        <!-- 4 -->
+                        <div
+                            style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 10px; align-items: center;">
+                            <span
+                                style="background: rgba(88, 101, 242, 0.1); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">4</span>
+                            <input type="text" class="form-input" id="vouch-btn-label-4" value="4"
+                                style="height: 38px;">
+                            <div class="emoji-input-wrapper" style="cursor: pointer;" onclick="openVouchEmojiPicker(4)">
+                                <input type="text" class="form-input" id="vouch-btn-emoji-4" value="?"
+                                    style="height: 38px; cursor: pointer;" readonly onclick="openVouchEmojiPicker(4)">
+                            </div>
+                        </div>
+
+                        <!-- 5 -->
+                        <div
+                            style="display: grid; grid-template-columns: 40px 1fr 1fr; gap: 10px; align-items: center;">
+                            <span
+                                style="background: rgba(88, 101, 242, 0.1); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">5</span>
+                            <input type="text" class="form-input" id="vouch-btn-label-5" value="5"
+                                style="height: 38px;">
+                            <div class="emoji-input-wrapper" style="cursor: pointer;" onclick="openVouchEmojiPicker(5)">
+                                <input type="text" class="form-input" id="vouch-btn-emoji-5" value="?"
+                                    style="height: 38px; cursor: pointer;" readonly onclick="openVouchEmojiPicker(5)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">How it Works</h3>
+                    <div class="step-list">
+                        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                            <div
+                                style="background: rgba(88, 101, 242, 0.1); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: bold; flex-shrink: 0;">
+                                1</div>
+                            <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">Request a vouch using
+                                <code>/vouch @user</code> in Discord.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                            <div
+                                style="background: rgba(88, 101, 242, 0.1); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: bold; flex-shrink: 0;">
+                                2</div>
+                            <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">The bot sends an embed
+                                with star reactions (1-5).</p>
+                        </div>
+                        <div style="display: flex; gap: 12px;">
+                            <div
+                                style="background: rgba(88, 101, 242, 0.1); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: bold; flex-shrink: 0;">
+                                3</div>
+                            <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">When a user reacts, the
+                                rating is logged to the configured channel.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- CREATE PANEL MODAL -->
+    <div id="panel-modal" class="modal" style="display: none;">
+        <div class="card" style="width: 650px; max-width: 95%;">
+            <div class="card-header">
+                <h2 class="card-title">Create Panel</h2>
+                <button onclick="hideModal('panel-modal'); resetPanelWizard();" class="btn-close">&times;</button>
+            </div>
+
+            <!-- Step 1: Select Ticket Style -->
+            <div id="panel-step-1" class="panel-step">
+                <h3 style="text-align: center; margin-bottom: 10px;">Select Default Ticket Style</h3>
+                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 30px;">
+                    Choose how tickets should be created when users interact with this panel.<br>
+                    Don't worry, you can change this setting later.
+                </p>
+
+                <div class="grid grid-2" style="gap: 20px;">
+                    <div class="ticket-type-card selected" onclick="selectTicketType('channel')" id="type-channel">
+                        <span class="recommended-badge">Recommended</span>
+                        <div class="ticket-type-icon">🎫</div>
+                        <h4>Text Channel</h4>
+                        <p>Create a new text channel in your server for each ticket.</p>
+                        <span class="subtext">Recommended for most users</span>
+                    </div>
+                    <div class="ticket-type-card" onclick="selectTicketType('thread')" id="type-thread">
+                        <div class="ticket-type-icon">📨</div>
+                        <h4>Thread</h4>
+                        <p>Create a new thread for each ticket within a designated channel.</p>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" style="width: 100%; margin-top: 30px;"
+                    onclick="goToStep(2)">Continue</button>
+            </div>
+
+            <!-- Step 2: Panel Details -->
+            <div id="panel-step-2" class="panel-step" style="display: none;">
+                <form id="panel-form">
+                    <input type="hidden" name="ticketType" id="panel-ticket-type" value="channel">
+
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Panel Name *</label>
+                            <input type="text" class="form-input" name="name" required
+                                placeholder="e.g., Support Panel">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Embed Color</label>
+                            <input type="color" class="form-input" name="color" value="#5865F2" style="height: 42px;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Embed Title *</label>
+                        <input type="text" class="form-input" name="title" required
+                            placeholder="🎫 Open a Support Ticket">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Embed Description</label>
+                        <textarea class="form-input" name="description" rows="3"
+                            placeholder="Click a button below to create a ticket..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Send to Channel</label>
+                        <select class="form-select" name="channel" id="panel-channel">
+                            <option value="">Select channel...</option>
+                        </select>
+                    </div>
+                    <div id="thread-channel-group" class="form-group" style="display: none;">
+                        <label class="form-label">Thread Parent Channel *</label>
+                        <select class="form-select" name="threadChannel" id="panel-thread-channel">
+                            <option value="">Select channel for threads...</option>
+                        </select>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">Tickets will be created
+                            as threads in this channel</p>
+                    </div>
+                    <div id="panel-error" style="color: var(--error); margin-bottom: 15px; display: none;"></div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="btn btn-secondary" onclick="goToStep(1)">? Back</button>
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">Create Panel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .ticket-type-card {
+            background: var(--bg-tertiary);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .ticket-type-card:hover {
+            border-color: var(--primary);
+            background: rgba(88, 101, 242, 0.1);
+        }
+
+        .ticket-type-card.selected {
+            border-color: var(--primary);
+            background: rgba(88, 101, 242, 0.15);
+        }
+
+        .ticket-type-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .ticket-type-card h4 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+        }
+
+        .ticket-type-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .ticket-type-card .subtext {
+            display: block;
+            color: var(--primary);
+            font-size: 12px;
+            margin-top: 12px;
+            font-weight: 500;
+        }
+
+        .recommended-badge {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #57F287;
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+    </style>
+
+
+    <!-- MOVE PANEL MODAL -->
+    <div id="move-panel-modal" class="modal" style="display: none;">
+        <div class="card" style="width: 500px; max-width: 95%;">
+            <div class="card-header">
+                <h2 class="card-title">Move Panel</h2>
+                <button onclick="hideModal('move-panel-modal')" class="btn-close">&times;</button>
+            </div>
+            <div style="padding: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Select Destination Channel</label>
+                    <select class="form-select" id="move-channel-select">
+                        <option value="">Loading channels...</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="button" id="btn-move-save" onclick="submitMovePanel()" class="btn btn-primary"
+                        style="flex: 1;">Move Panel</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="hideModal('move-panel-modal')">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- GENERIC CONFIRMATION MODAL -->
+    <div id="confirm-modal" class="modal" style="display: none;">
+        <div class="card" style="width: 400px; text-align: center; padding: 30px;">
+            <div style="font-size: 48px; margin-bottom: 20px;" id="confirm-icon">❓</div>
+            <h2 class="card-title" id="confirm-title" style="margin-bottom: 10px;">Are you sure?</h2>
+            <p id="confirm-message" style="color: var(--text-secondary); margin-bottom: 25px;">This action cannot be
+                undone.</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="btn-confirm-cancel" class="btn btn-secondary"
+                    onclick="hideModal('confirm-modal')">Cancel</button>
+                <button id="btn-confirm-yes" class="btn btn-primary"
+                    style="background: var(--error); border-color: var(--error);">Yes, Proceed</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD COMMAND MODAL -->
+    <div id="command-modal" class="modal" style="display: none;">
+        <div class="card" style="width: 500px; max-width: 95%;">
+            <div class="card-header">
+                <h2 class="card-title">Add Custom Command</h2>
+                <button onclick="hideModal('command-modal')" class="btn-close">&times;</button>
+            </div>
+            <form id="command-form">
+                <div class="form-group">
+                    <label class="form-label">Trigger *</label>
+                    <input type="text" class="form-input" name="trigger" required
+                        placeholder="e.g., rules (users type !rules)">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Response *</label>
+                    <textarea class="form-input" name="response" rows="4" required
+                        placeholder="Enter the response message..."></textarea>
+                </div>
+                <div id="command-error" style="color: var(--error); margin-bottom: 15px; display: none;"></div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Add Command</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('command-modal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 20px;
+        }
+    </style>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const pathParts = window.location.pathname.split('/');
+        const botId = pathParts[2];
+        const guildId = pathParts[4];
+
+        if (!token) window.location.href = '/login';
+
+        // User info
+        document.getElementById('user-info').innerHTML = `
+      <span>${user.username || user.email}</span>
+      <button class="btn btn-secondary" style="padding: 8px 16px; margin-left: 10px;" onclick="logout()">Logout</button>
+    `;
+
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        async function api(url, options = {}) {
+            return fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    ...options.headers,
+                },
+            });
+        }
+
+        // Language to timezone/locale mapping
+        const languageSettings = {
+            en: { timezone: 'Asia/Jakarta', locale: 'en-US' }, // Defaulting to Jakarta as requested, or UTC if preferred
+            id: { timezone: 'Asia/Jakarta', locale: 'id-ID' }, // Use Indonesian locale for ID
+        };
+
+        let guildLanguage = 'en'; // Default (updated by loadSettings)
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            try {
+                // Formatting: "YYYY-MM-DD HH:MM:SS" -> Treat as UTC
+                const isoString = dateString.replace(' ', 'T') + (dateString.endsWith('Z') ? '' : 'Z');
+                const date = new Date(isoString);
+
+                // Priority: 1. Explicitly set timezone in settings input
+                //           2. Mapped timezone from language
+                //           3. Default to Asia/Jakarta
+                const settingsTz = document.getElementById('setting-timezone')?.value;
+                const langConfig = languageSettings[guildLanguage] || languageSettings.en;
+                const timeZone = settingsTz || langConfig.timezone || 'Asia/Jakarta';
+                const locale = langConfig.locale || 'en-US';
+
+                return new Intl.DateTimeFormat(locale, {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    second: 'numeric',
+                    hour12: true, // 12-hour format is often preferred, or clean false for 24h
+                    timeZone: timeZone
+                }).format(date);
+            } catch (e) {
+                console.error('Date parsing error', e);
+                return dateString;
+            }
+        }
+
+        // Section navigation
+        document.querySelectorAll('.sidebar-nav a[data-section]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = link.dataset.section;
+                showSection(section);
+            });
+        });
+
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+            document.getElementById(`section-${section}`).style.display = 'block';
+
+            // Animate Section Entrance
+            anime({
+                targets: `#section-${section}`,
+                opacity: [0, 1],
+                translateY: [20, 0],
+                duration: 600,
+                easing: 'easeOutCubic'
+            });
+
+            document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+            document.querySelector(`a[data-section="${section}"]`)?.classList.add('active');
+
+            // Load data for section
+            if (section === 'panels') loadPanels();
+            if (section === 'templates') loadTemplates();
+            if (section === 'tickets') loadTickets();
+            if (section === 'commands') loadCommands();
+            if (section === 'stats') loadStats();
+            if (section === 'stats') loadStats();
+            if (section === 'settings') loadSettings();
+            if (section === 'vouch') loadSettings();
+
+            // Trigger Overview animations
+            if (section === 'home') {
+                triggerOverviewAnimations();
+            }
+        }
+
+        // Overview Powerful Animations
+        function triggerOverviewAnimations() {
+            // Guild icon scale in with elastic bounce
+            anime({
+                targets: '.overview-icon-wrapper',
+                scale: [0.8, 1],
+                opacity: [0, 1],
+                duration: 1000,
+                easing: 'easeOutElastic(1, .6)'
+            });
+
+            // Mini stats stagger from below
+            anime({
+                targets: '.mini-stat-animated',
+                translateY: [20, 0],
+                opacity: [0, 1],
+                delay: anime.stagger(80, { start: 300 }),
+                duration: 600,
+                easing: 'easeOutExpo'
+            });
+
+            // Mini stat icons bounce
+            anime({
+                targets: '.mini-stat-icon',
+                scale: [0.5, 1],
+                delay: anime.stagger(80, { start: 400 }),
+                duration: 800,
+                easing: 'easeOutElastic(1, .5)'
+            });
+
+            // Main stat cards slide up
+            anime({
+                targets: '.overview-stat-card',
+                translateY: [30, 0],
+                opacity: [0, 1],
+                delay: anime.stagger(120, { start: 600 }),
+                duration: 800,
+                easing: 'easeOutExpo'
+            });
+
+            // Chart cards slide in from sides
+            anime({
+                targets: '.overview-chart-card',
+                translateX: (el, i) => [i === 0 ? -30 : 30, 0],
+                opacity: [0, 1],
+                delay: anime.stagger(150, { start: 900 }),
+                duration: 800,
+                easing: 'easeOutExpo'
+            });
+
+            // Recent tickets card slide up
+            anime({
+                targets: '.overview-recent-card',
+                translateY: [30, 0],
+                opacity: [0, 1],
+                delay: 1100,
+                duration: 800,
+                easing: 'easeOutExpo'
+            });
+        }
+
+
+
+        // Modal helpers
+        function showModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function hideModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // Load guild info
+        async function loadGuild() {
+            try {
+                const res = await api(`/api/bots/${botId}/guilds`);
+                if (!res.ok) return;
+
+                const guilds = await res.json();
+                const guild = guilds.find(g => g.id === guildId);
+
+                if (guild) {
+                    document.getElementById('guild-header').innerHTML = `
+            <div style="display: flex; align-items: center; gap: 20px;">
+              ${guild.icon
+                            ? `<img src="${guild.icon}" alt="" style="width: 64px; height: 64px; border-radius: 12px;">`
+                            : `<div style="width: 64px; height: 64px; border-radius: 12px; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600;">${guild.name.substring(0, 2)}</div>`
+                        }
+              <div>
+                <h1 style="margin: 0;">${guild.name}</h1>
+                <p style="color: var(--text-muted); margin: 4px 0 0 0;">${guild.memberCount?.toLocaleString() || 0} members</p>
+              </div>
+            </div>
+          `;
+                }
+
+                // Load channels for dropdowns
+                loadChannels();
+                loadRoles();
+            } catch (e) { console.error(e); }
+        }
+
+        let channels = [];
+        let roles = [];
+
+        async function loadChannels() {
+            try {
+                const res = await api(`/api/bots/${botId}/guild/${guildId}/channels`);
+                if (res.ok) {
+                    channels = await res.json();
+                    updateChannelDropdowns();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadRoles() {
+            try {
+                const res = await api(`/api/bots/${botId}/guild/${guildId}/roles`);
+                if (res.ok) {
+                    roles = await res.json();
+                    updateRoleDropdowns();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function updateChannelDropdowns() {
+            const textChannels = channels.filter(c => c.type === 0);
+            const categories = channels.filter(c => c.type === 4);
+
+            ['setting-log-channel', 'setting-vouch-channel', 'setting-transcript-channel', 'panel-channel'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.innerHTML = '<option value="">None</option>' +
+                    textChannels.map(c => `<option value="${c.id}">#${c.name}</option>`).join('');
+            });
+
+            const catEl = document.getElementById('setting-category');
+            if (catEl) {
+                catEl.innerHTML = '<option value="">None</option>' +
+                    categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            }
+        }
+
+        function updateRoleDropdowns() {
+            const roleEl = document.getElementById('setting-support-role');
+            if (roleEl) {
+                roleEl.innerHTML = '<option value="">Select role to add...</option>' +
+                    roles.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+            }
+        }
+
+        // Stats Charts
+        let donutChart = null;
+        let volumeChart = null;
+
+
+        async function loadStats() {
+            const days = parseInt(document.getElementById('stats-time-range')?.value || 7);
+
+            try {
+                const res = await api(`/api/bots/${botId}/guild/${guildId}/tickets`);
+
+                if (!res.ok) {
+                    console.error('API Error:', res.status, res.statusText);
+                    throw new Error(`API Error: ${res.status}`);
+                }
+
+                const allTickets = await res.json();
+                console.log('Stats: Loaded tickets:', allTickets);
+
+                if (!Array.isArray(allTickets)) {
+                    console.error('Expected array, got:', allTickets);
+                    throw new Error('Invalid data format');
+                }
+
+                // Filter by time range
+                const now = new Date();
+                const tickets = days === 0 ? allTickets : allTickets.filter(t => {
+                    const opened = new Date(t.opened_at);
+                    const diffDays = (now - opened) / (1000 * 60 * 60 * 24);
+                    return diffDays <= days;
+                });
+
+                const opened = tickets.filter(t => t.status === 'open').length;
+                const closed = tickets.filter(t => t.status === 'closed').length;
+
+                // Update stat cards
+                const statsOpened = document.getElementById('stats-opened');
+                const statsClosed = document.getElementById('stats-closed');
+                const donutOpened = document.getElementById('donut-opened');
+                const donutClosed = document.getElementById('donut-closed');
+
+                if (statsOpened) statsOpened.textContent = tickets.length;
+                if (statsClosed) statsClosed.textContent = closed;
+                if (donutOpened) donutOpened.textContent = tickets.length;
+                if (donutClosed) donutClosed.textContent = closed;
+
+                // Calculate avg resolution time
+                const closedTickets = tickets.filter(t => t.status === 'closed' && t.closed_at);
+                const avgTimeEl = document.getElementById('stats-avg-time');
+                if (closedTickets.length > 0) {
+                    let totalMs = 0;
+                    closedTickets.forEach(t => {
+                        const openTime = new Date(t.opened_at);
+                        const closeTime = new Date(t.closed_at);
+                        totalMs += closeTime - openTime;
+                    });
+                    const avgMs = totalMs / closedTickets.length;
+                    const hours = Math.floor(avgMs / (1000 * 60 * 60));
+                    const mins = Math.floor((avgMs % (1000 * 60 * 60)) / (1000 * 60));
+                    if (avgTimeEl) avgTimeEl.textContent = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+                } else {
+                    if (avgTimeEl) avgTimeEl.textContent = 'N/A';
+                }
+
+                // Donut Chart
+                const donutCtx = document.getElementById('stats-donut-chart')?.getContext('2d');
+                if (donutCtx) {
+                    if (donutChart) donutChart.destroy();
+                    donutChart = new Chart(donutCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Opened', 'Closed'],
+                            datasets: [{
+                                data: [tickets.length - closed, closed],
+                                backgroundColor: ['#FAE022', '#F87171'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            cutout: '70%',
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+
+                // Update donut center total
+                const donutCenter = document.getElementById('donut-center-label');
+                if (donutCenter) {
+                    donutCenter.querySelector('div:first-child').textContent = tickets.length;
+                }
+
+                // Volume Chart - tickets per day
+                const volumeCtx = document.getElementById('stats-volume-chart')?.getContext('2d');
+                if (volumeCtx) {
+                    const dayLabels = [];
+                    const openedData = [];
+                    const closedData = [];
+                    const numDays = days === 0 ? 30 : Math.min(days, 30);
+
+                    for (let i = numDays - 1; i >= 0; i--) {
+                        const d = new Date();
+                        d.setDate(d.getDate() - i);
+                        const dateStr = d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+                        dayLabels.push(dateStr);
+
+                        const dayTickets = tickets.filter(t => {
+                            const tDate = new Date(t.opened_at);
+                            return tDate.toDateString() === d.toDateString();
+                        });
+                        openedData.push(dayTickets.length);
+
+                        const dayClosed = tickets.filter(t => {
+                            if (!t.closed_at) return false;
+                            const cDate = new Date(t.closed_at);
+                            return cDate.toDateString() === d.toDateString();
+                        });
+                        closedData.push(dayClosed.length);
+                    }
+
+                    if (volumeChart) volumeChart.destroy();
+                    volumeChart = new Chart(volumeCtx, {
+                        type: 'line',
+                        data: {
+                            labels: dayLabels,
+                            datasets: [
+                                { label: 'Opened', data: openedData, borderColor: '#FAE022', backgroundColor: 'rgba(250,224,34,0.1)', fill: true, tension: 0.4 },
+                                { label: 'Closed', data: closedData, borderColor: '#22C55E', backgroundColor: 'rgba(34,197,94,0.1)', fill: true, tension: 0.4 }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' } }, y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } } },
+                            plugins: { legend: { position: 'top', labels: { color: '#9ca3af' } } }
+                        }
+                    });
+                }
+
+                // ============================================
+                // ANIME.JS POWERFUL ANIMATIONS
+                // ============================================
+
+                // Animate stat cards entry with stagger
+                anime({
+                    targets: '.stat-card-animated',
+                    translateY: [30, 0],
+                    opacity: [0, 1],
+                    delay: anime.stagger(150, { start: 100 }),
+                    duration: 800,
+                    easing: 'easeOutExpo'
+                });
+
+                // Animate chart cards entry from sides
+                anime({
+                    targets: '.chart-card-animated',
+                    translateX: (el, i) => [i === 0 ? -30 : 30, 0],
+                    opacity: [0, 1],
+                    delay: anime.stagger(200, { start: 500 }),
+                    duration: 800,
+                    easing: 'easeOutExpo'
+                });
+
+                // Number counting animation for opened tickets
+                anime({
+                    targets: { value: 0 },
+                    value: tickets.length,
+                    round: 1,
+                    delay: 300,
+                    duration: 1500,
+                    easing: 'easeOutExpo',
+                    update: (anim) => {
+                        const el = document.getElementById('stats-opened');
+                        if (el) el.textContent = Math.round(anim.animations[0].currentValue);
+                    }
+                });
+
+                // Number counting animation for closed tickets
+                anime({
+                    targets: { value: 0 },
+                    value: closed,
+                    round: 1,
+                    delay: 450,
+                    duration: 1500,
+                    easing: 'easeOutExpo',
+                    update: (anim) => {
+                        const el = document.getElementById('stats-closed');
+                        if (el) el.textContent = Math.round(anim.animations[0].currentValue);
+                    }
+                });
+
+                // Animate donut center number
+                anime({
+                    targets: { value: 0 },
+                    value: tickets.length,
+                    round: 1,
+                    delay: 600,
+                    duration: 1500,
+                    easing: 'easeOutExpo',
+                    update: (anim) => {
+                        const el = document.querySelector('#donut-center-label div:first-child');
+                        if (el) el.textContent = Math.round(anim.animations[0].currentValue);
+                    }
+                });
+
+                // Stat icon pulse on load
+                anime({
+                    targets: '.stat-icon-container',
+                    scale: [0.8, 1],
+                    delay: anime.stagger(100, { start: 200 }),
+                    duration: 600,
+                    easing: 'easeOutElastic(1, .5)'
+                });
+
+
+            } catch (e) {
+                console.error('Failed to load stats:', e);
+                const leaderboardEl = document.getElementById('stats-leaderboard');
+                if (leaderboardEl) leaderboardEl.innerHTML = `<p style="color: #F87171; text-align: center; padding: 20px;">Failed to load statistics: ${e.message}</p>`;
+            }
+        }
+
+        // Load panels
+        // Load panels
+        async function loadPanels() {
+            try {
+                const res = await api(`/api/bots/${botId}/guild/${guildId}/panels`);
+                const panels = await res.json();
+
+                // Update header count
+                const countEl = document.getElementById('panels-count');
+                if (countEl) countEl.textContent = panels.length;
+
+                const statPanels = document.getElementById('stat-panels');
+                if (statPanels) statPanels.textContent = panels.length;
+
+                const listEl = document.getElementById('panels-list');
+                // Switch to new grid class
+                listEl.className = 'tk-panel-grid';
+
+                if (panels.length === 0) {
+                    listEl.style.display = 'block';
+                    listEl.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; background: var(--bg-secondary); border-radius: 12px; border: 1px dashed var(--border-color); color: var(--text-muted);">
+                        <i class="fas fa-clipboard-list" style="font-size: 48px; margin-bottom: 20px; opacity: 0.5;"></i>
+                        <h3>No Panels Created</h3>
+                        <p style="margin: 10px 0;">Create a panel to start accepting tickets.</p>
+                        <button class="btn btn-primary" onclick="resetPanelWizard(); showModal('panel-modal')">Create Panel</button>
+                    </div>`;
+                    return;
+                }
+
+                listEl.innerHTML = panels.map(p => {
+                    const channelName = channels.find(c => c.id === p.channel_id)?.name || 'unknown-channel';
+
+                    let buttonsHtml = '';
+                    if (p.options && p.options.length > 0) {
+                        buttonsHtml = p.options.map(opt => {
+                            const styleMap = { 'Primary': '#5865F2', 'Secondary': '#4f545c', 'Success': '#3ba55d', 'Danger': '#ed4245' };
+                            const color = styleMap[opt.style] || '#5865F2';
+                            return `
+                                <div class="tk-discord-btn" style="background-color: ${color};">
+                                    ${opt.emoji ? opt.emoji + ' ' : ''}${opt.label}
+                                </div>
+                            `;
+                        }).join('');
+
+
+
+
+
+
+                    } else {
+                        // Fallback default
+                        buttonsHtml = `
+                            <div class="tk-discord-btn">
+                                <i class="fas fa-ticket-alt"></i> Open Ticket
+                            </div>
+                        `;
+                    }
+
+                    return `
+                    <div>
+                        <!-- Top Actions Grid -->
+                        <div class="tk-actions-grid">
+                            <div class="tk-action-btn" onclick="editPanel(${p.id})">
+                                <i class="fas fa-pen"></i> Edit
+                            </div>
+                            <div class="tk-action-btn" onclick="movePanel(${p.id})">
+                                <i class="fas fa-arrows-alt"></i> Move
+                            </div>
+                            <div class="tk-action-btn" onclick="resendPanel(${p.id})">
+                                <i class="fas fa-redo"></i> Resend
+                            </div>
+                            <div class="tk-action-btn" onclick="saveTemplate(${p.id})">
+                                <i class="fas fa-clone"></i> Template
+                            </div>
+                            <div class="tk-action-btn delete" onclick="deletePanel(${p.id})">
+                                <i class="fas fa-trash"></i> Delete
+                            </div>
+                        </div>
+
+                        <!-- Preview Container -->
+                        <div class="tk-preview-container">
+                            <div class="tk-preview-header">
+                                <div>Last updated ${new Date(p.created_at || Date.now()).toLocaleDateString()}</div>
+                                <div style="display: flex; gap: 4px; align-items: center;">
+                                    <span>•</span>
+                                    <span style="background: rgba(88, 101, 242, 0.3); color: #C9CDFB; padding: 2px 6px; border-radius: 4px;">#${channelName}</span> 
+                                </div>
+                            </div>
+                            
+                            <div class="tk-preview-content">
+                                <!-- Discord Embed -->
+                                <div class="tk-embed" style="border-left-color: ${p.embed_color || '#5865F2'};">
+                                    ${p.embed_author_name ? `
+                                    <div class="tk-embed-author">
+                                        ${p.embed_author_icon ? `<img src="${p.embed_author_icon}" alt="">` : ''}
+                                        <span>${p.embed_author_name}</span>
+                                    </div>` : ''}
+                                    
+                                    ${p.embed_title ? `<div class="tk-embed-title">${parseMarkdown(p.embed_title)}</div>` : ''}
+                                    
+                                    ${p.embed_description ? `<div class="tk-embed-desc">${parseMarkdown(p.embed_description)}</div>` : ''}
+                                    
+                                    ${p.embed_image ? `<div class="tk-embed-image"><img src="${p.embed_image}" style="width: 100%; display: block;"></div>` : ''}
+                                    
+                                    ${p.embed_footer ? `
+                                    <div class="tk-embed-footer">
+                                        ${p.embed_footer_icon ? `<img src="${p.embed_footer_icon}" alt="">` : ''}
+                                        <span>${p.embed_footer}</span>
+                                    </div>` : ''}
+                                </div>
+                                
+                                <!-- Buttons Row -->
+                                <div class="tk-btns-row">
+                                    ${buttonsHtml}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `}).join('');
+
+                // Animate Panels
+                anime({
+                    targets: '.tk-panel-grid > div',
+                    translateY: [20, 0],
+                    opacity: [0, 1],
+                    delay: anime.stagger(100),
+                    easing: 'easeOutExpo'
+                });
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('panels-list').innerHTML = `<div style="color: var(--error);">Error loading panels</div>`;
+            }
+        }
+
+        function editPanel(panelId) {
+            window.location.href = `/bot/${botId}/guild/${guildId}/panel/${panelId}`;
+        }
+
+        // Load templates
+        async function loadTemplates() {
+            const listEl = document.getElementById('templates-list');
+            listEl.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            try {
+                const res = await api(`/api/bots/${botId}/guild/${guildId}/templates`);
+                const templates = await res.json();
+
+                if (!templates || templates.length === 0) {
+                    listEl.innerHTML = `
+                    <div class="card" style="text-align: center; padding: 60px;">
+                        <i class="fas fa-clipboard-list" style="font-size: 48px; color: var(--text-muted); margin-bottom: 20px;"></i>
+                        <h3>No Templates Yet</h3>
+                        <p style="color: var(--text-secondary); margin: 15px 0;">Save panel configurations as templates for quick reuse.</p>
+                        <p style="color: var(--text-muted); font-size: 13px;">Click the "Template" button on any panel to save it here.</p>
+                    </div>`;
+                    return;
+                }
+
+                listEl.innerHTML = `
+                <div class="grid grid-3">
+                    ${templates.map(t => {
+                    let panelData = {};
+                    try { panelData = JSON.parse(t.panel_data || '{}'); } catch (e) { }
+                    const panelInfo = panelData.panel || {};
+                    const optionsCount = (panelData.options || []).length;
+
+                    return `
+                        <div class="card" style="position: relative;">
+                            <div class="card-header" style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 12px;">
+                                <h3 class="card-title" style="font-size: 16px;">${t.name}</h3>
+                            </div>
+                            <div style="font-size: 13px; color: var(--text-secondary);">
+                                <p><strong>Panel:</strong> ${panelInfo.name || 'Unnamed'}</p>
+                                <p><strong>Buttons:</strong> ${optionsCount}</p>
+                                <p><strong>Created:</strong> ${new Date(t.created_at).toLocaleDateString()}</p>
+                            </div>
+                            <div style="display: flex; gap: 8px; margin-top: 16px;">
+                                <button class="btn btn-primary" style="flex: 1;" onclick="useTemplate(${t.id})">
+                                    <i class="fas fa-plus"></i> Use
+                                </button>
+                                <button class="btn btn-danger" onclick="deleteTemplateBtn(${t.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        `;
+                }).join('')}
+                </div>`;
+
+            } catch (e) {
+                console.error(e);
+                listEl.innerHTML = '<div style="color: var(--error);">Error loading templates</div>';
+            }
+        }
+
+        async function deleteTemplateBtn(templateId) {
+            askConfirm('Delete Template?', 'Are you sure you want to delete this template?', async () => {
+                try {
+                    const res = await api(`/api/bots/${botId}/guild/${guildId}/templates/${templateId}`, { method: 'DELETE' });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('Success', 'Template deleted', 'success');
+                        loadTemplates();
+                    } else {
+                        showToast('Error', data.error, 'error');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    showToast('Error', 'Failed to delete template', 'error');
+                }
+            });
+        }
+
+        async function useTemplate(templateId) {
+            // Redirect to panel editor with template ID
+            window.location.href = `/bot/${botId}/guild/${guildId}/panel/new?template=${templateId}`;
+        }
+
+        // Toast Helper
+        function showToast(title, message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            // Auto remove
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Confirm Helper
+        let currentConfirmCallback = null;
+        function askConfirm(title, message, callback) {
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-message').textContent = message;
+            document.getElementById('confirm-icon').textContent = '❓';
+
+            const btnYes = document.getElementById('btn-confirm-yes');
+
+            // Clone to remove old listeners, preserve ID
+            const newBtn = btnYes.cloneNode(true);
+            newBtn.id = 'btn-confirm-yes';
+            btnYes.parentNode.replaceChild(newBtn, btnYes);
+
+            newBtn.onclick = async () => {
+                hideModal('confirm-modal');
+                try {
+                    await callback();
+                } catch (e) {
+                    console.error('Confirm callback error:', e);
+                    showToast('Error', 'An error occurred', 'error');
+                }
+            };
+
+            showModal('confirm-modal');
+        }
+
+        async function resendPanel(panelId) {
+            askConfirm('Resend Panel?', 'This will verify the channel and send a fresh copy of the panel message.', async () => {
+                try {
+                    const res = await api(`/api/bots/${botId}/guild/${guildId}/panels/${panelId}/resend`, { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('Success', 'Panel resent successfully!', 'success');
+                    } else {
+                        showToast('Error', data.error, 'error');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    showToast('Error', 'Failed to resend panel', 'error');
+                }
+            });
+        }
+
+        let movingPanelId = null;
+
+        async function movePanel(panelId) {
+            movingPanelId = panelId;
+            const select = document.getElementById('move-channel-select');
+            const btn = document.getElementById('btn-move-save');
+
+            // content reset
+            select.innerHTML = '<option>Loading channels...</option>';
+            select.disabled = true;
+            btn.disabled = true;
+
+            showModal('move-panel-modal');
+
+            try {
+                const res = await api(`/api/bots/${botId}/guild/${guildId}/channels`);
+                const channels = await res.json();
+
+                if (channels.length > 0) {
+                    select.innerHTML = channels.map(c => `<option value="${c.id}">#${c.name}</option>`).join('');
+                } else {
+                    select.innerHTML = '<option value="">No text channels found</option>';
+                }
+                select.disabled = false;
+                btn.disabled = false;
+            } catch (e) {
+                console.error(e);
+                select.innerHTML = '<option>Error loading channels</option>';
+            }
+        }
+
+        async function submitMovePanel() {
+            const channelId = document.getElementById('move-channel-select').value;
+            if (!channelId || !movingPanelId) {
+                showToast('Warning', 'Please select a destination channel', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btn-move-save');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Moving...';
+
+            try {
+                const res = await api(`/api/bots/${botId}/guild/${guildId}/panels/${movingPanelId}/move`, { method: 'POST', body: JSON.stringify({ channelId }) });
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast('Success', 'Panel moved successfully!', 'success');
+                    hideModal('move-panel-modal');
+                    loadPanels();
+                } else {
+                    showToast('Error', data.error, 'error');
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('Error', 'Failed to move panel', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        async function saveTemplate(panelId) {
+            askConfirm('Save Template?', 'Do you want to save this panel configuration as a reusable template?', async () => {
+                try {
+                    const res = await api(`/api/bots/${botId}/guild/${guildId}/panels/${panelId}/clone`, { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast('Success', 'Template saved successfully!', 'success');
+                    } else {
+                        showToast('Error', data.error, 'error');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    showToast('Error', 'Failed to save template', 'error');
+                }
+            });
+        }
+
+        // Load tickets
+        let currentTicketPage = 1;
+        const TICKET_LIMIT = 10;
+
+        async function loadTickets(page = 1) {
+            currentTicketPage = page;
+            try {
+                // Ensure buttons exist
+                let controls = document.getElementById('ticket-pagination');
+                if (!controls) {
+                    const tableContainer = document.querySelector('#section-tickets .table-container');
+
+                    // Inject Styles (Compact)
+                    const styleId = 'tk-pagination-style';
+                    if (!document.getElementById(styleId)) {
+                        const style = document.createElement('style');
+                        style.id = styleId;
+                        style.textContent = `
+                            .tk-pagination { 
+                                display: flex; 
+                                justify-content: center; 
+                                align-items: center; 
+                                gap: 12px; 
+                                margin: 20px -24px -24px -24px; 
+                                padding: 16px 24px;
+                                border-top: 1px solid var(--border-color);
+                                width: auto;
+                                border-radius: 0 0 12px 12px;
+                            }
+                            .tk-page-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); cursor: pointer; transition: all 0.2s; }
+                            .tk-page-btn:hover:not(:disabled) { background: var(--primary); border-color: var(--primary); color: white; }
+                            .tk-page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+                            .tk-page-info { font-size: 14px; font-weight: 500; color: var(--text-secondary); background: var(--bg-secondary); padding: 4px 12px; border-radius: 6px; }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    controls = document.createElement('div');
+                    controls.id = 'ticket-pagination';
+                    controls.className = 'tk-pagination';
+                    controls.innerHTML = `
+                        <button class="tk-page-btn" id="ticket-prev" disabled><i class="fas fa-chevron-left"></i></button>
+                        <span class="tk-page-info" id="ticket-page-display">1</span>
+                        <button class="tk-page-btn" id="ticket-next"><i class="fas fa-chevron-right"></i></button>
+                    `;
+                    tableContainer.parentNode.appendChild(controls);
+
+                    document.getElementById('ticket-prev').onclick = () => changeTicketPage(-1);
+                    document.getElementById('ticket-next').onclick = () => changeTicketPage(1);
+                }
+
+                const res = await api(`/api/bots/${botId}/guild/${guildId}/tickets?page=${page}&limit=${TICKET_LIMIT}`);
+                const tickets = await res.json();
+
+                // Update stats if elements exist (Assuming they might be used elsewhere)
+                // Since we paginate, we can't calc totals here. We rely on loadStats/loadHomeStats for totals.
+                // We just skip updating stat-open/closed here to avoid overwriting with partial data.
+
+                const listBody = document.getElementById('tickets-body');
+
+                if (tickets.length === 0) {
+                    listBody.innerHTML = `
+                        <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            ${page === 1 ? 'No tickets yet' : 'No more tickets'}
+                        </td></tr>
+                    `;
+                    document.getElementById('ticket-next').disabled = true;
+                    document.getElementById('ticket-prev').disabled = page <= 1;
+                    return;
+                }
+
+                listBody.innerHTML = tickets.map(t => `
+                  <tr>
+                    <td>#${t.ticket_number}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            ${t.avatar ? `<img src="${t.avatar}" style="width: 24px; height: 24px; border-radius: 50%;">` : ''}
+                            <span>${t.username || t.user_id}</span>
+                        </div>
+                    </td>
+                    <td><span class="badge ${t.status === 'open' ? 'badge-success' : 'badge-error'}">${t.status}</span></td>
+                    <td>${formatDate(t.opened_at)}</td>
+                    <td>${formatDate(t.closed_at)}</td>
+                    <td>
+                        <a href="/server/${guildId}/ticket/${t.ticket_number}" class="tk-view-btn">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </td>
+                  </tr>
+                `).join('');
+
+                // Add style for the button if not exists
+                if (!document.getElementById('tk-view-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'tk-view-style';
+                    style.innerHTML = `
+                        .tk-view-btn {
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 8px;
+                            background: var(--bg-tertiary);
+                            border: 1px solid var(--border-color);
+                            color: var(--text-primary);
+                            padding: 6px 12px;
+                            border-radius: 4px;
+                            text-decoration: none;
+                            font-size: 13px;
+                            transition: all 0.2s;
+                        }
+                        .tk-view-btn:hover {
+                            background: var(--primary);
+                            border-color: var(--primary);
+                            color: white;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                // Update controls
+                document.getElementById('ticket-page-display').textContent = page;
+                document.getElementById('ticket-prev').disabled = page <= 1;
+                document.getElementById('ticket-next').disabled = tickets.length < TICKET_LIMIT;
+
+            } catch (e) { console.error(e); }
+        }
+
+        function changeTicketPage(delta) {
+            const newPage = currentTicketPage + delta;
+            if (newPage < 1) return;
+            loadTickets(newPage);
+        }
+
+        // Load commands
+        async function loadCommands() {
+            try {
+                const res = await api(`/api/bots/${botId}/guild/${guildId}/commands`);
+                const commands = await res.json();
+
+                const statCommands = document.getElementById('stat-commands');
+                if (statCommands) statCommands.textContent = commands.length || 0;
+
+                if (!commands.length) {
+                    document.getElementById('commands-list').innerHTML = `
+            <div class="card" style="text-align: center; padding: 60px;">
+              <p style="font-size: 48px; margin-bottom: 20px;">📜</p>
+              <h3>No Custom Commands</h3>
+              <p style="color: var(--text-secondary); margin: 20px 0;">Add quick response commands for your team.</p>
+              <button class="btn btn-primary" onclick="showModal('command-modal')">+ Add Command</button>
+            </div>
+          `;
+                    return;
+                }
+
+                // Store commands for edit function
+                window.commandsData = commands;
+
+                document.getElementById('commands-list').innerHTML = `
+          <div class="grid grid-2">
+            ${commands.map(c => `
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">!${c.trigger}</h3>
+                  <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary" style="padding: 6px 12px;" onclick="editCommandById(${c.id})"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-danger" style="padding: 6px 12px;" onclick="deleteCommand(${c.id})"><i class="fas fa-trash"></i></button>
+                  </div>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 14px;">${(c.response || 'No response').substring(0, 100)}${(c.response?.length || 0) > 100 ? '...' : ''}</p>
+              </div>
+            `).join('')}
+          </div>
+        `;
+            } catch (e) { console.error(e); }
+        }
+
+        // Edit command by ID (looks up from stored commands)
+        function editCommandById(id) {
+            const cmd = window.commandsData?.find(c => c.id === id);
+            if (!cmd) {
+                console.error('Command not found:', id);
+                return;
+            }
+            editingCommandId = id;
+            document.querySelector('#command-modal h2').textContent = 'Edit Custom Command';
+            document.querySelector('#command-form button[type="submit"]').textContent = 'Save Changes';
+            document.querySelector('#command-form input[name="trigger"]').value = cmd.trigger || '';
+            document.querySelector('#command-form textarea[name="response"]').value = cmd.response || '';
+            showModal('command-modal');
+        }
+
+        // Load stats
+
+
+        // Load settings
+        async function loadSettings() {
+            try {
+                const res = await api(`/api/bots/${botId}/guild/${guildId}/config`);
+                if (!res.ok) return;
+
+                const config = await res.json();
+
+                if (config.log_channel_id) document.getElementById('setting-log-channel').value = config.log_channel_id;
+                if (config.vouch_channel_id) document.getElementById('setting-vouch-channel').value = config.vouch_channel_id;
+                if (config.transcript_channel_id) document.getElementById('setting-transcript-channel').value = config.transcript_channel_id;
+                if (config.ticket_category_id) document.getElementById('setting-category').value = config.ticket_category_id;
+                if (config.language) {
+                    document.getElementById('setting-language').value = config.language;
+                    guildLanguage = config.language; // Update global language setting
+                }
+                if (config.timezone) document.getElementById('setting-timezone').value = config.timezone;
+                if (config.auto_close_hours) document.getElementById('setting-auto-close').value = config.auto_close_hours;
+
+                // Parse Vouch Data
+                if (config.vouch_data) {
+                    try {
+                        const vData = JSON.parse(config.vouch_data);
+                        if (vData.title) document.getElementById('vouch-title').value = vData.title;
+                        if (vData.description) document.getElementById('vouch-desc').value = vData.description;
+                        if (vData.response) document.getElementById('vouch-response').value = vData.response;
+                        if (vData.log_title) document.getElementById('vouch-log-title').value = vData.log_title;
+                        if (vData.log_description) document.getElementById('vouch-log-desc').value = vData.log_description;
+
+                        if (vData.buttons && Array.isArray(vData.buttons)) {
+                            vData.buttons.forEach((btn, idx) => {
+                                const i = idx + 1;
+                                if (i > 5) return;
+                                const labelInput = document.getElementById(`vouch-btn-label-${i}`);
+                                const emojiInput = document.getElementById(`vouch-btn-emoji-${i}`);
+                                if (labelInput) labelInput.value = btn.label || i;
+                                if (emojiInput) emojiInput.value = btn.emoji || '?';
+                            });
+                        }
+                    } catch (e) { console.error('Error parsing vouch data', e); }
+                }
+
+
+            } catch (e) { console.error(e); }
+        }
+
+        // Panel wizard functions
+        let selectedTicketType = 'channel';
+
+        function selectTicketType(type) {
+            selectedTicketType = type;
+            document.getElementById('panel-ticket-type').value = type;
+
+            document.querySelectorAll('.ticket-type-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(`type-${type}`).classList.add('selected');
+
+            // Show/hide thread channel field
+            const threadGroup = document.getElementById('thread-channel-group');
+            if (type === 'thread') {
+                threadGroup.style.display = 'block';
+            } else {
+                threadGroup.style.display = 'none';
+            }
+        }
+
+        function goToStep(step) {
+            document.querySelectorAll('.panel-step').forEach(s => s.style.display = 'none');
+            document.getElementById(`panel-step-${step}`).style.display = 'block';
+        }
+
+        function resetPanelWizard() {
+            selectedTicketType = 'channel';
+            document.getElementById('panel-ticket-type').value = 'channel';
+            document.querySelectorAll('.ticket-type-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('type-channel').classList.add('selected');
+            document.getElementById('thread-channel-group').style.display = 'none';
+            goToStep(1);
+            document.getElementById('panel-form').reset();
+        }
+
+        // Create panel
+        document.getElementById('panel-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const form = new FormData(e.target);
+            const errorEl = document.getElementById('panel-error');
+            errorEl.style.display = 'none';
+
+            try {
+                const res = await api(`/api/bots/${botId}/guild/${guildId}/panels`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name: form.get('name'),
+                        title: form.get('title'),
+                        description: form.get('description'),
+                        color: form.get('color'),
+                        channelId: form.get('channel'),
+                        ticketType: form.get('ticketType'),
+                        threadChannelId: form.get('threadChannel'),
+                    }),
+                });
+
+                if (res.ok) {
+                    hideModal('panel-modal');
+                    resetPanelWizard();
+                    loadPanels();
+                } else {
+                    const data = await res.json();
+                    errorEl.textContent = data.error;
+                    errorEl.style.display = 'block';
+                }
+            } catch (e) {
+                errorEl.textContent = 'Connection error';
+                errorEl.style.display = 'block';
+            }
+        };
+
+        // Delete panel
+        async function deletePanel(id) {
+            if (!confirm('Delete this panel?')) return;
+            try {
+                await api(`/api/bots/${botId}/guild/${guildId}/panels/${id}`, { method: 'DELETE' });
+                loadPanels();
+            } catch (e) { console.error(e); }
+        }
+
+        // Create/Edit command
+        document.getElementById('command-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const form = new FormData(e.target);
+            const errorEl = document.getElementById('command-error');
+            errorEl.style.display = 'none';
+
+            try {
+                const isEdit = editingCommandId !== null;
+                const url = isEdit
+                    ? `/api/bots/${botId}/guild/${guildId}/commands/${editingCommandId}`
+                    : `/api/bots/${botId}/guild/${guildId}/commands`;
+
+                const res = await api(url, {
+                    method: isEdit ? 'PUT' : 'POST',
+                    body: JSON.stringify({
+                        trigger: form.get('trigger'),
+                        response: form.get('response'),
+                    }),
+                });
+
+                if (res.ok) {
+                    hideModal('command-modal');
+                    e.target.reset();
+                    editingCommandId = null;
+                    loadCommands();
+                    loadHomeStats(); // Update stats
+                } else {
+                    const data = await res.json();
+                    errorEl.textContent = data.error;
+                    errorEl.style.display = 'block';
+                }
+            } catch (e) {
+                errorEl.textContent = 'Connection error';
+                errorEl.style.display = 'block';
+            }
+        };
+
+        // Edit command
+        let editingCommandId = null;
+
+        function editCommand(id, trigger, response) {
+            editingCommandId = id;
+            document.querySelector('#command-modal h2').textContent = 'Edit Custom Command';
+            document.querySelector('#command-form button[type="submit"]').textContent = 'Save Changes';
+            document.querySelector('#command-form input[name="trigger"]').value = trigger;
+            document.querySelector('#command-form textarea[name="response"]').value = response;
+            showModal('command-modal');
+        }
+
+        // Reset form when adding new command
+        const originalShowModal = showModal;
+        function showCommandModal() {
+            editingCommandId = null;
+            document.querySelector('#command-modal h2').textContent = 'Add Custom Command';
+            document.querySelector('#command-form button[type="submit"]').textContent = 'Add Command';
+            document.getElementById('command-form').reset();
+            originalShowModal('command-modal');
+        }
+
+        // Override add command button
+        document.querySelector('button[onclick="showModal(\'command-modal\')"]')?.setAttribute('onclick', 'showCommandModal()');
+
+        // Delete command
+        async function deleteCommand(id) {
+            if (!confirm('Delete this command?')) return;
+            try {
+                await api(`/api/bots/${botId}/guild/${guildId}/commands/${id}`, { method: 'DELETE' });
+                loadCommands();
+            } catch (e) { console.error(e); }
+        }
+
+        // Save settings
+        document.getElementById('settings-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const statusEl = document.getElementById('save-status');
+
+            try {
+                const res = await api(`/api/bots/${botId}/guild/${guildId}/settings`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        logChannel: document.getElementById('setting-log-channel').value || null,
+                        vouchChannel: document.getElementById('setting-vouch-channel').value || null,
+                        transcriptChannel: document.getElementById('setting-transcript-channel').value || null,
+                        ticketCategory: document.getElementById('setting-category').value || null,
+                        language: document.getElementById('setting-language').value,
+                        timezone: document.getElementById('setting-timezone').value,
+                        autoCloseHours: parseInt(document.getElementById('setting-auto-close').value) || 0,
+                    }),
+                });
+
+                if (res.ok) {
+                    statusEl.innerHTML = '<span style="color: var(--success);">✅ Saved!</span>';
+                    setTimeout(() => statusEl.innerHTML = '', 3000);
+                } else {
+                    statusEl.innerHTML = '<span style="color: var(--error);">❌ Failed</span>';
+                }
+            } catch (e) {
+                statusEl.innerHTML = '<span style="color: var(--error);">❌ Error</span>';
+            }
+        };
+
+        // Load home stats fully
+        async function loadHomeStats() {
+            try {
+                // 1. Get detailed guild info for stats (Members, etc.)
+                const guildsRes = await api(`/api/bots/${botId}/guilds`);
+                if (guildsRes.ok) {
+                    const guilds = await guildsRes.json();
+                    const currentGuild = guilds.find(g => g.id === guildId);
+                    if (currentGuild) {
+                        document.getElementById('stat-members').textContent = currentGuild.memberCount.toLocaleString();
+                        document.getElementById('stat-channels').textContent = (currentGuild.channelCount || 0).toLocaleString();
+                        document.getElementById('stat-roles').textContent = (currentGuild.roleCount || 0).toLocaleString();
+                        document.getElementById('stat-emojis').textContent = (currentGuild.emojiCount || 0).toLocaleString();
+                        document.getElementById('stat-stickers').textContent = (currentGuild.stickerCount || 0).toLocaleString();
+
+                        // Update header info
+                        document.getElementById('home-guild-name').textContent = currentGuild.name;
+                        document.getElementById('home-guild-icon').src = currentGuild.icon || 'https://cdn.discordapp.com/embed/avatars/0.png';
+                    }
+                }
+
+                // 2. Get ticket stats & activity
+                const statsRes = await api(`/api/bots/${botId}/guild/${guildId}/stats`);
+                if (statsRes.ok) {
+                    const stats = await statsRes.json();
+                    const total = (stats.total_tickets || 0);
+                    const open = (stats.open_tickets || 0);
+                    const closed = (stats.closed_tickets || 0);
+
+                    document.getElementById('stat-total-tickets').textContent = total.toLocaleString();
+                    document.getElementById('stat-open-tickets').textContent = open.toLocaleString();
+                    document.getElementById('stat-closed-tickets').textContent = closed.toLocaleString();
+
+                    // Render Distribution Chart
+                    const distCtx = document.getElementById('distributionChart');
+                    if (window.distChart instanceof Chart) {
+                        window.distChart.destroy();
+                    }
+                    window.distChart = new Chart(distCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Open', 'Closed'],
+                            datasets: [{
+                                data: [open, closed],
+                                backgroundColor: ['#22c55e', '#ef4444'], // Green, Red
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: true, position: 'bottom', labels: { color: '#9ca3af' } }
+                            }
+                        }
+                    });
+
+                    // Render Activity Chart
+                    if (stats.activity) {
+                        const actCtx = document.getElementById('activityChart');
+                        if (window.actChart instanceof Chart) {
+                            window.actChart.destroy();
+                        }
+                        window.actChart = new Chart(actCtx, {
+                            type: 'line',
+                            data: {
+                                labels: stats.activity.map(a => new Date(a.date).toLocaleDateString('en-US', { weekday: 'short' })),
+                                datasets: [{
+                                    label: 'New Tickets',
+                                    data: stats.activity.map(a => a.count),
+                                    borderColor: '#fae022',
+                                    backgroundColor: 'rgba(250, 224, 34, 0.1)',
+                                    tension: 0.4,
+                                    fill: true
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    x: { grid: { display: false }, ticks: { color: '#9ca3af' } },
+                                    y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#9ca3af', precision: 0 } }
+                                },
+                                plugins: {
+                                    legend: { display: false }
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // 3. Get recent tickets
+                const ticketsRes = await api(`/api/bots/${botId}/guild/${guildId}/tickets`);
+                if (ticketsRes.ok) {
+                    const tickets = await ticketsRes.json();
+                    const recentTickets = tickets.slice(0, 10); // Show last 10
+
+                    if (recentTickets.length === 0) {
+                        document.getElementById('home-recent-tickets').innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">No recent tickets</td></tr>`;
+                    } else {
+                        document.getElementById('home-recent-tickets').innerHTML = recentTickets.map(t => `
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(250, 224, 34, 0.1); display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-ticket-alt" style="color: #fae022; font-size: 10px;"></i>
+                                        </div>
+                                        <span style="font-weight: 600; color: white;">#${t.ticket_number}</span>
+                                    </div>
+                                </td>
+                                <td><span class="badge ${t.status === 'open' ? 'badge-success' : 'badge-error'}">${t.status}</span></td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        ${t.avatar ? `<img src="${t.avatar}" style="width: 20px; height: 20px; border-radius: 50%;">` : ''}
+                                        <span style="color: var(--text-secondary); font-size: 13px;">${t.username || t.user_id}</span>
+                                    </div>
+                                </td>
+                                <td style="color: var(--text-primary);">${formatDate(t.opened_at)}</td>
+                                <td style="color: var(--text-secondary);">${t.closed_at ? formatDate(t.closed_at) : '<i class="fas fa-minus" style="opacity: 0.3;"></i>'}</td>
+                                <td style="text-align: right;">
+                                    <a href="#" onclick="showSection('tickets'); return false;" class="btn-view">
+                                        View Info <i class="fas fa-arrow-right" style="font-size: 10px;"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+
+                // Trigger Animations
+                anime({
+                    targets: '.stat-item-small',
+                    translateY: [20, 0],
+                    opacity: [0, 1],
+                    delay: anime.stagger(50),
+                    duration: 800,
+                    easing: 'easeOutExpo'
+                });
+
+                anime({
+                    targets: '.stat-card',
+                    translateY: [20, 0],
+                    opacity: [0, 1],
+                    delay: anime.stagger(100, { start: 200 }),
+                    duration: 800,
+                    easing: 'easeOutExpo'
+                });
+
+                anime({
+                    targets: '.chart-container',
+                    scale: [0.95, 1],
+                    opacity: [0, 1],
+                    delay: anime.stagger(100, { start: 400 }),
+                    duration: 1000,
+                    easing: 'easeOutExpo'
+                });
+
+            } catch (e) { console.error('Error loading home stats:', e); }
+        }
+
+        // Simple Discord Markdown Parser
+        function parseMarkdown(text) {
+            if (!text) return '';
+
+            // Escape HTML
+            let html = text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+
+            // Bold **text**
+            html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+            // Italic *text* or _text_
+            html = html.replace(/\*(.*?)\*/g, '<i>$1</i>');
+            html = html.replace(/_(.*?)_/g, '<i>$1</i>');
+
+            // Underline __text__
+            html = html.replace(/__(.*?)__/g, '<u>$1</u>');
+
+            // Strike ~~text~~
+            html = html.replace(/~~(.*?)~~/g, '<s>$1</s>');
+
+            // Code `text`
+            html = html.replace(/`(.*?)`/g, '<code style="background:#2f3136; padding:2px 4px; border-radius:3px;">$1</code>');
+
+            // Links [text](url)
+            html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" style="color:#00aff4;">$1</a>');
+
+            // Newlines
+            html = html.replace(/\n/g, '<br>');
+
+            return html;
+        }
+
+        // Initialize Data (Sequential to ensure settings/timezone are loaded first)
+        (async () => {
+            await loadSettings(); // Load language & timezone setting first
+            loadGuild();
+            loadHomeStats();
+        })();
+
+        // Check hash for initial section
+        const hash = window.location.hash.substring(1);
+        if (hash) {
+            showSection(hash);
+        } else {
+            // Trigger overview animations on initial load (home is default)
+            setTimeout(() => triggerOverviewAnimations(), 100);
+        }
+
+        // Render Sidebar
+        renderSidebar(guildId, botId);
+
+        function renderSidebar(gId, bId) {
+            const sidebarHtml = `
+                <div style="padding: 24px; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div style="width: 40px; height: 40px; background: rgba(88, 101, 242, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-robot" style="font-size: 20px; color: var(--accent);"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 16px; font-weight: 600; margin: 0;">KingBot</h3>
+                            <span style="font-size: 12px; color: var(--text-secondary);">Dashboard</span>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="sidebar-nav" style="padding: 12px;">
+                    <li>
+                        <a href="/dashboard">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Dashboard
+                        </a>
+                    </li>
+                    
+                    <li style="margin-top: 12px; margin-bottom: 8px; padding: 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Manage</li>
+                    
+                    <li>
+                        <a href="#" data-section="home" class="active">
+                            <i class="fas fa-home"></i>
+                            Overview
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-section="panels">
+                            <i class="fas fa-columns"></i>
+                            Panels
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-section="templates">
+                            <i class="fas fa-copy"></i>
+                            Templates
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-section="tickets">
+                            <i class="fas fa-ticket-alt"></i>
+                            Tickets
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-section="commands">
+                            <i class="fas fa-terminal"></i>
+                            Commands
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-section="stats">
+                            <i class="fas fa-chart-bar"></i>
+                            Statistics
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-section="settings">
+                            <i class="fas fa-cog"></i>
+                            Settings
+                        </a>
+                    </li>
+
+                    <li style="margin-top: 12px; margin-bottom: 8px; padding: 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Features</li>
+
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/welcome">
+                            <i class="fas fa-door-open"></i>
+                            Welcome & Leave
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/embeds">
+                            <i class="fas fa-envelope-open-text"></i>
+                            Embed Messages
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/invites">
+                            <i class="fas fa-envelope"></i>
+                            Invite Tracker
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/sticky">
+                            <i class="fas fa-thumbtack"></i>
+                            Sticky Messages
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" data-section="vouch">
+                            <i class="fas fa-star"></i>
+                            Vouch System
+                        </a>
+                    </li>
+
+                    <li style="margin-top: 12px; margin-bottom: 8px; padding: 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Help</li>
+
+                    <li>
+                        <a href="/docs?lang=id">
+                            <i class="fas fa-book"></i>
+                            Documentation
+                        </a>
+                    </li>
+                </ul>
+            `;
+            document.getElementById('sidebar-container').innerHTML = sidebarHtml;
+
+            // Attach click handlers for section navigation
+            document.querySelectorAll('#sidebar-container a[data-section]').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const section = link.dataset.section;
+                    showSection(section);
+                });
+            });
+        }
+
+        async function saveVouchSettings() {
+            const btn = document.querySelector('button[onclick="saveVouchSettings()"]');
+            const status = document.getElementById('vouch-save-status');
+
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+
+            // Gather Button Data
+            const buttons = [];
+            for (let i = 1; i <= 5; i++) {
+                buttons.push({
+                    label: document.getElementById(`vouch-btn-label-${i}`).value || i.toString(),
+                    emoji: document.getElementById(`vouch-btn-emoji-${i}`).value || '?'
+                });
+            }
+
+            const vouchData = {
+                title: document.getElementById('vouch-title').value,
+                description: document.getElementById('vouch-desc').value,
+                response: document.getElementById('vouch-response').value,
+                log_title: document.getElementById('vouch-log-title').value,
+                log_description: document.getElementById('vouch-log-desc').value,
+                buttons: buttons
+            };
+
+            try {
+                const res = await api(`/api/bots/${botId}/guild/${guildId}/settings`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        vouchChannel: document.getElementById('setting-vouch-channel').value || null,
+                        vouchData: vouchData
+                    })
+                });
+
+                if (!res.ok) throw new Error('Failed to save');
+
+                status.textContent = 'Saved!';
+                status.style.color = '#43b581';
+                setTimeout(() => status.textContent = '', 2000);
+            } catch (e) {
+                console.error(e);
+                status.textContent = 'Error saving';
+                status.style.color = '#f04747';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💾 Save Configuration';
+            }
+        }
+    </script>
+
+    <script>
+        // Force Header Standardization (Avatar + Logout)
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.id) {
+                const avatarUrl = user.avatar
+                    ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+                    : 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+                const userInfo = document.getElementById('user-info');
+                if (userInfo) {
+                    userInfo.innerHTML = `
+                        <img src="${avatarUrl}" alt="" class="avatar">
+                        <span style="font-weight: 500;">${user.username}</span>
+                        <button onclick="logout()" class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px; margin-left: 10px;">Logout</button>
+                    `;
+                }
+            }
+        });
+
+        // Ensure logout exists
+        if (typeof logout === 'undefined') {
+            window.logout = function () {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login';
+            }
+        }
+    </script>
+    <!-- Emoji Modal -->
+    <div id="emoji-modal" class="modal-overlay"
+        style="display: none; align-items: center; justify-content: center; z-index: 2000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8);">
+        <div class="modal-content" style="width: 380px; max-height: 80vh; display: flex; flex-direction: column;">
+            <!-- Header -->
+            <div
+                style="padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary);">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">😊</span> Select Emoji
+                </h3>
+                <button onclick="closeEmojiModal()"
+                    style="background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">&times;</button>
+            </div>
+
+            <!-- Search -->
+            <div style="padding: 12px 16px 8px 16px; background: var(--bg-card);">
+                <div class="search-container" style="margin-bottom: 0;">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="emoji-search" class="emoji-search-input" placeholder="Search emoji..."
+                        oninput="filterEmojis()" autocomplete="off">
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="emoji-nav">
+                <div class="emoji-nav-item active" onclick="switchEmojiTab('server')" title="Server"><i
+                        class="fas fa-server"></i></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Smileys')" title="Smileys"><i
+                        class="fas fa-face-smile"></i></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Gestures')" title="Gestures"><i
+                        class="fas fa-hand"></i></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Animals')" title="Animals"><i
+                        class="fas fa-paw"></i></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Food')" title="Food"><i
+                        class="fas fa-utensils"></i></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Travel')" title="Travel"><i
+                        class="fas fa-plane"></i></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Activities')" title="Activities"><i
+                        class="fas fa-futbol"></i></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Objects')" title="Objects"><i
+                        class="fas fa-lightbulb"></i></div>
+                <div class="emoji-nav-item" onclick="switchEmojiTab('Symbols')" title="Symbols"><i
+                        class="fas fa-heart"></i></div>
+            </div>
+        </div>
+
+        <!-- Grid -->
+        <div id="emoji-grid" class="emoji-grid"
+            style="padding: 12px 16px 16px 16px; flex: 1; background: var(--bg-card);">
+            <!-- Emojis -->
+        </div>
+
+        <!-- Footer -->
+        <div
+            style="padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary); font-size: 12px; color: var(--text-muted);">
+            <span>Supported: Native & Server Emojis</span>
+            <button class="btn btn-secondary" onclick="useCustomEmoji()"
+                style="font-size: 11px; padding: 4px 10px; height: 28px;">Use Text Input</button>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        // Emoji Picker Logic for Vouch System
+        let currentVouchEmojiIndex = null;
+        let guildEmojis = [];
+
+        async function openVouchEmojiPicker(index) {
+            console.log('Opening emoji picker for index:', index);
+            currentVouchEmojiIndex = index;
+            const modal = document.getElementById('emoji-modal');
+            const grid = document.getElementById('emoji-grid');
+
+            modal.style.display = 'flex';
+
+            if (guildEmojis.length === 0) {
+                grid.innerHTML = '<div style="padding: 20px; text-align: center;">Loading emojis...</div>';
+                try {
+                    const res = await api(`/api/bots/${botId}/guild/${guildId}/emojis`);
+                    if (res.ok) {
+                        guildEmojis = await res.json();
+                        renderEmojis(guildEmojis);
+                    } else {
+                        grid.innerHTML = '<p style="text-align:center; color: var(--error);">Failed to load emojis</p>';
+                    }
+                } catch (e) {
+                    console.error(e);
+                    grid.innerHTML = '<p style="text-align:center; color: var(--error);">Error loading emojis</p>';
+                }
+            } else {
+                renderEmojis(guildEmojis);
+            }
+        }
+
+        // Load emojis from CDN to avoid encoding issues
+        let emojiCategories = {};
+
+        // Simple emoji sets using Unicode code points (more reliable)
+        const emojiSets = {
+            'Smileys': [0x1F600, 0x1F603, 0x1F604, 0x1F601, 0x1F606, 0x1F605, 0x1F602, 0x1F60A, 0x1F607, 0x1F609, 0x1F60D, 0x1F618, 0x1F617, 0x1F61A, 0x1F619, 0x1F60B, 0x1F61B, 0x1F61C, 0x1F61D, 0x1F60E, 0x1F60F, 0x1F612, 0x1F61E, 0x1F614, 0x1F61F, 0x1F615, 0x1F641, 0x1F623, 0x1F616, 0x1F62B, 0x1F629, 0x1F622, 0x1F62D, 0x1F624, 0x1F620, 0x1F621, 0x1F633, 0x1F631, 0x1F628, 0x1F630, 0x1F625, 0x1F613, 0x1F62A, 0x1F634, 0x1F637, 0x1F912, 0x1F915, 0x1F922, 0x1F927, 0x1F608, 0x1F47F, 0x1F479, 0x1F47A, 0x1F4A9, 0x1F47B, 0x1F480, 0x1F47D, 0x1F47E, 0x1F916, 0x1F63A, 0x1F638, 0x1F639, 0x1F63B, 0x1F63C, 0x1F63D, 0x1F640, 0x1F63F, 0x1F63E],
+            'Gestures': [0x1F44B, 0x1F44D, 0x1F44E, 0x1F44A, 0x270A, 0x270C, 0x1F44C, 0x1F448, 0x1F449, 0x1F446, 0x1F447, 0x261D, 0x1F64F, 0x1F44F, 0x1F4AA, 0x1F91D, 0x1F64C, 0x1F450, 0x1F91B, 0x1F91C, 0x1F91E, 0x270D],
+            'Animals': [0x1F436, 0x1F431, 0x1F42D, 0x1F439, 0x1F430, 0x1F98A, 0x1F43B, 0x1F43C, 0x1F428, 0x1F42F, 0x1F981, 0x1F42E, 0x1F437, 0x1F43D, 0x1F438, 0x1F435, 0x1F648, 0x1F649, 0x1F64A, 0x1F412, 0x1F414, 0x1F427, 0x1F426, 0x1F424, 0x1F423, 0x1F425, 0x1F986, 0x1F985, 0x1F989, 0x1F987, 0x1F43A, 0x1F417, 0x1F434, 0x1F984, 0x1F41D, 0x1F41B, 0x1F98B, 0x1F40C, 0x1F41E, 0x1F41C, 0x1F577, 0x1F982, 0x1F422, 0x1F40D, 0x1F98E, 0x1F996, 0x1F995, 0x1F419, 0x1F991, 0x1F990, 0x1F980, 0x1F420, 0x1F41F, 0x1F42C, 0x1F433, 0x1F40B, 0x1F988, 0x1F40A, 0x1F405, 0x1F406, 0x1F993, 0x1F98D, 0x1F418, 0x1F98F, 0x1F42A, 0x1F42B, 0x1F992, 0x1F403, 0x1F402, 0x1F404, 0x1F40E, 0x1F416, 0x1F40F, 0x1F411, 0x1F410, 0x1F98C, 0x1F415, 0x1F429, 0x1F408, 0x1F413, 0x1F407, 0x1F401, 0x1F400, 0x1F43F, 0x1F994, 0x1F43E],
+            'Food': [0x1F347, 0x1F348, 0x1F349, 0x1F34A, 0x1F34B, 0x1F34C, 0x1F34D, 0x1F34E, 0x1F34F, 0x1F350, 0x1F351, 0x1F352, 0x1F353, 0x1F95D, 0x1F345, 0x1F951, 0x1F346, 0x1F954, 0x1F955, 0x1F33D, 0x1F336, 0x1F952, 0x1F966, 0x1F344, 0x1F95C, 0x1F330, 0x1F35E, 0x1F950, 0x1F956, 0x1F968, 0x1F95E, 0x1F9C0, 0x1F356, 0x1F357, 0x1F969, 0x1F953, 0x1F354, 0x1F35F, 0x1F355, 0x1F32D, 0x1F96A, 0x1F32E, 0x1F32F, 0x1F959, 0x1F95A, 0x1F373, 0x1F372, 0x1F963, 0x1F957, 0x1F37F, 0x1F371, 0x1F358, 0x1F359, 0x1F35A, 0x1F35B, 0x1F35C, 0x1F35D, 0x1F360, 0x1F362, 0x1F363, 0x1F364, 0x1F365, 0x1F361, 0x1F366, 0x1F367, 0x1F368, 0x1F369, 0x1F36A, 0x1F382, 0x1F370, 0x1F36B, 0x1F36C, 0x1F36D, 0x1F36E, 0x1F36F, 0x1F37C, 0x2615, 0x1F375, 0x1F376, 0x1F37E, 0x1F377, 0x1F378, 0x1F379, 0x1F37A, 0x1F37B, 0x1F942, 0x1F943],
+            'Travel': [0x1F697, 0x1F695, 0x1F699, 0x1F68C, 0x1F68E, 0x1F693, 0x1F691, 0x1F692, 0x1F690, 0x1F69A, 0x1F69B, 0x1F69C, 0x1F6B2, 0x1F6F5, 0x1F3CD, 0x1F6A8, 0x1F694, 0x1F68D, 0x1F698, 0x1F696, 0x1F6A1, 0x1F6A0, 0x1F69F, 0x1F683, 0x1F68B, 0x1F69E, 0x1F69D, 0x1F684, 0x1F685, 0x1F688, 0x1F682, 0x1F686, 0x1F687, 0x1F68A, 0x1F689, 0x2708, 0x1F6EB, 0x1F6EC, 0x1F680, 0x1F6F8, 0x1F681, 0x1F6F6, 0x26F5, 0x1F6A4, 0x1F6A2, 0x2693, 0x26FD, 0x1F6A7, 0x1F6A6, 0x1F6A5, 0x1F5FA, 0x1F5FF, 0x1F5FD, 0x1F5FC, 0x1F3F0, 0x1F3EF, 0x1F3DF, 0x1F3A1, 0x1F3A2, 0x1F3A0, 0x26F2, 0x1F3D6, 0x1F3DD, 0x1F3DC, 0x1F30B, 0x1F3D4, 0x1F5FB, 0x1F3D5, 0x26FA, 0x1F3E0, 0x1F3E1, 0x1F3D8, 0x1F3DA, 0x1F3D7, 0x1F3ED, 0x1F3E2, 0x1F3EC, 0x1F3E3, 0x1F3E4, 0x1F3E5, 0x1F3E6, 0x1F3E8, 0x1F3EA, 0x1F3EB, 0x1F3E9, 0x26EA, 0x1F54C, 0x1F54D, 0x1F54B, 0x26E9, 0x1F3DE, 0x1F305, 0x1F304, 0x1F320, 0x1F387, 0x1F386, 0x1F307, 0x1F306, 0x1F3D9, 0x1F303, 0x1F30C, 0x1F309, 0x1F301],
+            'Activities': [0x26BD, 0x1F3C0, 0x1F3C8, 0x26BE, 0x1F3BE, 0x1F3D0, 0x1F3C9, 0x1F3B1, 0x1F3D3, 0x1F3F8, 0x1F3D2, 0x1F3D1, 0x1F3CF, 0x26F3, 0x1F3F9, 0x1F3A3, 0x1F94A, 0x1F94B, 0x1F3BD, 0x1F6F9, 0x1F6F7, 0x26F8, 0x1F94C, 0x1F3BF, 0x26F7, 0x1F3C2, 0x1F3CB, 0x1F93C, 0x1F938, 0x1F93A, 0x1F93E, 0x1F3CC, 0x1F3C7, 0x1F9D8, 0x1F3C4, 0x1F3CA, 0x1F93D, 0x1F6A3, 0x1F9D7, 0x1F6B5, 0x1F6B4, 0x1F3C6, 0x1F947, 0x1F948, 0x1F949, 0x1F3C5, 0x1F396, 0x1F3F5, 0x1F397, 0x1F3AB, 0x1F39F, 0x1F3AA, 0x1F939, 0x1F3AD, 0x1F3A8, 0x1F3AC, 0x1F3A4, 0x1F3A7, 0x1F3BC, 0x1F3B9, 0x1F941, 0x1F3B7, 0x1F3BA, 0x1F3B8, 0x1F3BB, 0x1F3B2, 0x1F3AF, 0x1F3B3, 0x1F3AE, 0x1F3B0, 0x1F9E9],
+            'Objects': [0x231A, 0x1F4F1, 0x1F4F2, 0x1F4BB, 0x1F5A5, 0x1F5A8, 0x1F5B1, 0x1F5B2, 0x1F579, 0x1F5DC, 0x1F4BE, 0x1F4BF, 0x1F4C0, 0x1F4FC, 0x1F4F7, 0x1F4F8, 0x1F4F9, 0x1F3A5, 0x1F4FD, 0x1F39E, 0x1F4DE, 0x260E, 0x1F4DF, 0x1F4E0, 0x1F4FA, 0x1F4FB, 0x1F399, 0x1F39A, 0x1F39B, 0x23F1, 0x23F2, 0x23F0, 0x1F570, 0x231B, 0x23F3, 0x1F4E1, 0x1F50B, 0x1F50C, 0x1F4A1, 0x1F526, 0x1F56F, 0x1F4B8, 0x1F4B5, 0x1F4B4, 0x1F4B6, 0x1F4B7, 0x1F4B0, 0x1F4B3, 0x1F48E, 0x1F527, 0x1F528, 0x1F6E0, 0x26CF, 0x1F529, 0x2699, 0x26D3, 0x1F52B, 0x1F4A3, 0x1F52A, 0x1F5E1, 0x2694, 0x1F6E1, 0x1F6AC, 0x26B0, 0x26B1, 0x1F3FA, 0x1F52E, 0x1F4FF, 0x1F488, 0x2697, 0x1F52D, 0x1F52C, 0x1F573, 0x1F48A, 0x1F489, 0x1F321, 0x1F6BD, 0x1F6B0, 0x1F6BF, 0x1F6C1, 0x1F6C0, 0x1F9F9, 0x1F9FA, 0x1F9FB, 0x1F9FC, 0x1F9FD, 0x1F9F4, 0x1F6CE, 0x1F511, 0x1F5DD, 0x1F6AA, 0x1F6CB, 0x1F6CF, 0x1F6CC, 0x1F5BC, 0x1F6D2, 0x1F381, 0x1F388, 0x1F38F, 0x1F380, 0x1F38A, 0x1F389, 0x1F38E, 0x1F3EE, 0x1F390, 0x2709, 0x1F4E9, 0x1F4E8, 0x1F4E7, 0x1F48C, 0x1F4E5, 0x1F4E4, 0x1F4E6, 0x1F4EA, 0x1F4EB, 0x1F4EC, 0x1F4ED, 0x1F4EE, 0x1F4EF, 0x1F4DC, 0x1F4C3, 0x1F4C4, 0x1F4D1, 0x1F4CA, 0x1F4C8, 0x1F4C9, 0x1F4C6, 0x1F4C5, 0x1F4C7, 0x1F4CB, 0x1F4C1, 0x1F4C2, 0x1F4F0, 0x1F4D3, 0x1F4D4, 0x1F4D2, 0x1F4D5, 0x1F4D7, 0x1F4D8, 0x1F4D9, 0x1F4DA, 0x1F4D6, 0x1F516, 0x1F517, 0x1F4CE, 0x1F4D0, 0x1F4CF, 0x2702, 0x1F4CC, 0x1F4CD, 0x270F, 0x1F50D, 0x1F50E, 0x1F50F, 0x1F510, 0x1F512, 0x1F513],
+            'Symbols': [0x2764, 0x1F9E1, 0x1F49B, 0x1F49A, 0x1F499, 0x1F49C, 0x1F5A4, 0x1F494, 0x2763, 0x1F495, 0x1F49E, 0x1F493, 0x1F497, 0x1F496, 0x1F498, 0x1F49D, 0x1F49F, 0x262E, 0x271D, 0x262A, 0x1F549, 0x2638, 0x2721, 0x1F52F, 0x1F54E, 0x262F, 0x2626, 0x1F6D0, 0x26CE, 0x2648, 0x2649, 0x264A, 0x264B, 0x264C, 0x264D, 0x264E, 0x264F, 0x2650, 0x2651, 0x2652, 0x2653, 0x1F194, 0x269B, 0x1F251, 0x2622, 0x2623, 0x1F4F4, 0x1F4F3, 0x1F236, 0x1F21A, 0x1F238, 0x1F23A, 0x1F237, 0x2734, 0x1F19A, 0x1F4AE, 0x1F250, 0x1F234, 0x1F235, 0x1F239, 0x1F232, 0x1F170, 0x1F171, 0x1F18E, 0x1F191, 0x1F17E, 0x1F198, 0x274C, 0x2B55, 0x1F6D1, 0x26D4, 0x1F4DB, 0x1F6AB, 0x1F4AF, 0x1F4A2, 0x2668, 0x1F6B7, 0x1F6AF, 0x1F6B3, 0x1F6B1, 0x1F51E, 0x1F4F5, 0x1F6AD, 0x2757, 0x2755, 0x2753, 0x2754, 0x203C, 0x2049, 0x1F505, 0x1F506, 0x303D, 0x26A0, 0x1F6B8, 0x1F531, 0x269C, 0x1F530, 0x267B, 0x2705, 0x1F22F, 0x1F4B9, 0x2747, 0x2733, 0x274E, 0x1F310, 0x1F4A0, 0x24C2, 0x1F300, 0x1F4A4, 0x1F3E7, 0x1F6BE, 0x267F, 0x1F17F, 0x1F6D7, 0x1F233, 0x1F202, 0x1F6C2, 0x1F6C3, 0x1F6C4, 0x1F6C5, 0x1F6B9, 0x1F6BA, 0x1F6BC, 0x1F6BB, 0x1F6AE, 0x1F3A6, 0x1F4F6, 0x1F201, 0x1F523, 0x2139, 0x1F524, 0x1F521, 0x1F520, 0x1F196, 0x1F197, 0x1F199, 0x1F192, 0x1F195, 0x1F193]
+        };
+
+        // Convert code points to emoji characters
+        for (const [category, codePoints] of Object.entries(emojiSets)) {
+            emojiCategories[category] = codePoints.map(cp => String.fromCodePoint(cp));
+        }
+
+        let currentCategory = 'server';
+
+        function switchEmojiTab(category) {
+            currentCategory = category;
+
+            // Update UI
+            document.querySelectorAll('.emoji-nav-item').forEach(el => el.classList.remove('active'));
+            // Map category to index or selector - simplified by finding by click handler or title
+            // For now, simpler: re-render active state based on comparison? 
+            // Or just use the clicked element passed as 'this' if I passed it, but I didn't.
+            // I'll grab by attribute.
+            const btn = document.querySelector(`.emoji-nav-item[onclick*="'${category}'"]`);
+            if (btn) btn.classList.add('active');
+
+            // Render
+            renderEmojis(guildEmojis);
+        }
+
+        function renderEmojis(emojis) {
+            const grid = document.getElementById('emoji-grid');
+            let html = '';
+            const searchMode = document.getElementById('emoji-search').value.length > 0;
+
+            if (searchMode) return; // filterEmojis handles search
+
+            if (currentCategory === 'server') {
+                // Server Emojis
+                if (emojis && emojis.length > 0) {
+                    html += '<div class="section-divider"><i class="fas fa-server" style="margin-right:6px;"></i>Server Emojis</div>';
+                    html += '<div class="emoji-category-grid">';
+                    emojis.forEach(e => {
+                        const identifier = e.identifier || e.id;
+                        const safeId = identifier.replace(/'/g, "\\'");
+                        html += `<div class="emoji-item" onclick="selectVouchEmoji('${safeId}')" title="${e.name}">
+                            ${e.url ? `<img src="${e.url}">` : e.name}
+                        </div>`;
+                    });
+                    html += '</div>';
+                } else {
+                    html += '<div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 20px;">No server emojis found.</div>';
+                }
+            } else {
+                // Standard emoji category - currentCategory matches emojiCategories key
+                const categoryEmojis = emojiCategories[currentCategory] || [];
+                const catIcon = categoryEmojis[0] || '';
+
+                html += `<div class="section-divider"><span style="margin-right:6px;">${catIcon}</span>${currentCategory}</div>`;
+                html += '<div class="emoji-category-grid">';
+                categoryEmojis.forEach(e => {
+                    html += `<div class="emoji-item" onclick="selectVouchEmoji('${e}')">${e}</div>`;
+                });
+                html += '</div>';
+            }
+
+            grid.innerHTML = html;
+        }
+
+        // Update filter to search across all
+        function filterEmojis() {
+            const query = document.getElementById('emoji-search').value.toLowerCase();
+            const grid = document.getElementById('emoji-grid');
+
+            if (!query) {
+                renderEmojis(guildEmojis); // Render current category when search is cleared
+                return;
+            }
+
+            let html = '';
+
+            // Search Mode: Show consolidated results (vertical list is fine for search results as it's targeted)
+
+            // 1. Server Emojis
+            const filteredServer = guildEmojis.filter(e => e.name.toLowerCase().includes(query));
+            if (filteredServer.length > 0) {
+                html += '<div class="section-divider">Results: Server</div>';
+                html += '<div class="emoji-category-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)); gap:8px;">';
+                filteredServer.forEach(e => {
+                    const identifier = e.identifier || e.id;
+                    const safeId = identifier.replace(/'/g, "\\'");
+                    html += `<div class="emoji-item" onclick="selectVouchEmoji('${safeId}')" title="${e.name}">
+                        ${e.url ? `<img src="${e.url}">` : e.name}
+                    </div>`;
+                });
+                html += '</div>';
+            }
+
+            // 2. Standard Emojis (No names to search easily, so we skip or just show nothing? 
+            // The user didn't ask for standard emoji search, just categories. 
+            // I'll leave search for server emojis only for now to avoid complexity without a library)
+
+            if (html === '') {
+                html = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No server emojis found matching "' + query + '"</div>';
+            }
+
+            grid.innerHTML = html;
+        }
+
+        function selectVouchEmoji(emoji) {
+            if (currentVouchEmojiIndex !== null) {
+                const input = document.getElementById(`vouch-btn-emoji-${currentVouchEmojiIndex}`);
+                if (input) input.value = emoji;
+            }
+            closeEmojiModal();
+        }
+
+        function closeEmojiModal() {
+            document.getElementById('emoji-modal').style.display = 'none';
+            currentVouchEmojiIndex = null;
+            document.getElementById('emoji-search').value = ''; // Clear search on close
+            switchEmojiTab('server'); // Reset to server emojis tab
+        }
+
+        function useCustomEmoji() {
+            const val = document.getElementById('emoji-search').value;
+            if (val) selectVouchEmoji(val);
+        }
+    </script>
+</body>
+
+</html>

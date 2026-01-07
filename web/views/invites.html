@@ -1,0 +1,362 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invite Tracker - KingBot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <a href="/dashboard" class="logo">👑 <span>KingBot</span></a>
+            <div class="user-info" id="user-info"></div>
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebar-container"></nav>
+
+    <main class="main-content">
+        <div id="guild-header" style="margin-bottom: 30px;">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <div class="page-header"
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <div>
+                <h1 style="font-size: 24px; font-weight: 700; color: white;">📩 Invite Tracker</h1>
+                <p style="color: var(--text-secondary); margin-top: 4px;">Track invite usage and improved growth
+                    analytics.</p>
+            </div>
+        </div>
+
+        <!-- Leaderboard Section -->
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h3 class="card-title">🏆 Top Inviters</h3>
+            </div>
+            <div class="table-container">
+                <table class="recent-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">Rank</th>
+                            <th>User</th>
+                            <th style="width: 150px; text-align: right;">Invites</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <tr>
+                            <td colspan="3" class="loading">
+                                <div class="spinner"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">📜 Recent Joins</h3>
+            </div>
+            <div class="table-container">
+                <table class="recent-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Invited By</th>
+                            <th>Code</th>
+                            <th style="width: 180px;">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-body">
+                        <tr>
+                            <td colspan="4" class="loading">
+                                <div class="spinner"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Auth Check
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+
+        // Helper API
+        async function api(url, options = {}) {
+            const res = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    ...options.headers,
+                },
+            });
+            if (res.status === 401) {
+                window.location.href = '/login';
+                throw new Error('Unauthorized');
+            }
+            return res;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        // Parse User Data
+        const userData = JSON.parse(localStorage.getItem('user'));
+        if (!userData) window.location.href = '/login';
+
+        // IDs
+        const pathParts = window.location.pathname.split('/');
+        const botId = pathParts[2];
+        const guildId = pathParts[4];
+
+        // Fill User Info
+        if (userData) {
+            const avatarUrl = userData.avatar
+                ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`
+                : 'https://cdn.discordapp.com/embed/avatars/0.png';
+            document.getElementById('user-info').innerHTML = `
+                <img src="${avatarUrl}" alt="" class="avatar">
+                <span>${userData.username}</span>
+                <button onclick="logout()" class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px;">Logout</button>
+            `;
+        }
+
+        // Render Sidebar
+        renderSidebar(guildId, botId);
+
+        function renderSidebar(gId, bId) {
+            const sidebarHtml = `
+                <div style="padding: 24px; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div style="width: 40px; height: 40px; background: rgba(88, 101, 242, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-robot" style="font-size: 20px; color: var(--accent);"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 16px; font-weight: 600; margin: 0;">KingBot</h3>
+                            <span style="font-size: 12px; color: var(--text-secondary);">Dashboard</span>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="sidebar-nav" style="padding: 12px;">
+                    <li>
+                        <a href="/dashboard">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Dashboard
+                        </a>
+                    </li>
+                    
+                    <li style="margin-top: 12px; margin-bottom: 8px; padding: 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Manage</li>
+                    
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}">
+                            <i class="fas fa-home"></i>
+                            Overview
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#panels">
+                            <i class="fas fa-columns"></i>
+                            Panels
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#templates">
+                            <i class="fas fa-copy"></i>
+                            Templates
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#tickets">
+                            <i class="fas fa-ticket-alt"></i>
+                            Tickets
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#commands">
+                            <i class="fas fa-terminal"></i>
+                            Commands
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#stats">
+                            <i class="fas fa-chart-bar"></i>
+                            Statistics
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#settings">
+                            <i class="fas fa-cog"></i>
+                            Settings
+                        </a>
+                    </li>
+
+                    <li style="margin-top: 12px; margin-bottom: 8px; padding: 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Features</li>
+
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/welcome">
+                            <i class="fas fa-door-open"></i>
+                            Welcome & Leave
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/embeds">
+                            <i class="fas fa-envelope-open-text"></i>
+                            Embed Messages
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/invites" class="active">
+                            <i class="fas fa-envelope"></i>
+                            Invite Tracker
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/sticky">
+                            <i class="fas fa-thumbtack"></i>
+                            Sticky Messages
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#vouch">
+                            <i class="fas fa-star"></i>
+                            Vouch System
+                        </a>
+                    </li>
+
+                    <li style="margin-top: 12px; margin-bottom: 8px; padding: 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Help</li>
+
+                    <li>
+                        <a href="/docs?lang=id">
+                            <i class="fas fa-book"></i>
+                            Documentation
+                        </a>
+                    </li>
+                </ul>
+            `;
+            document.getElementById('sidebar-container').innerHTML = sidebarHtml;
+        }
+
+
+        async function loadData() {
+            // Load Leaderboard
+            try {
+                const res = await api(`/api/invites/${botId}/${guildId}/leaderboard`);
+                if (!res.ok) throw new Error('Failed to fetch leaderboard');
+                const data = await res.json();
+
+                const tbody = document.getElementById('leaderboard-body');
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">No invite data yet.</td></tr>`;
+                } else {
+                    tbody.innerHTML = data.map((row, index) => `
+                        <tr>
+                            <td><span style="
+                                display: inline-flex; width: 24px; height: 24px; 
+                                align-items: center; justify-content: center; 
+                                background: ${index < 3 ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; 
+                                color: ${index < 3 ? 'black' : 'var(--text-secondary)'}; 
+                                border-radius: 50%; font-weight: bold; font-size: 12px;
+                            ">${index + 1}</span></td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <img src="${row.avatar}" style="width: 32px; height: 32px; border-radius: 50%;">
+                                    <span style="font-weight: 500; color: white;">${row.username}</span>
+                                </div>
+                            </td>
+                            <td style="text-align: right; font-weight: 600; color: white;">${row.count}</td>
+                        </tr>
+                     `).join('');
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('leaderboard-body').innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--error); padding: 20px;">Failed to load leaderboard.</td></tr>`;
+            }
+
+            // Load History
+            try {
+                const res = await api(`/api/invites/${botId}/${guildId}/recent`);
+                if (!res.ok) throw new Error('Failed to fetch history');
+                const data = await res.json();
+                const tbody = document.getElementById('recent-body');
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">No recent joins found.</td></tr>`;
+                } else {
+                    tbody.innerHTML = data.map(row => `
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <img src="${row.user_avatar}" style="width: 24px; height: 24px; border-radius: 50%;">
+                                    <span style="color: var(--text-primary);">${row.user_username}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span style="color: var(--text-secondary);">${row.inviter_username}</span>
+                            </td>
+                            <td>
+                                <span style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">    ${row.code || 'N/A'}</span>
+                            </td>
+                            <td style="color: var(--text-muted); font-size: 12px;">
+                                ${new Date(row.created_at).toLocaleString()}
+                            </td>
+                        </tr>
+                     `).join('');
+                }
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('recent-body').innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--error); padding: 20px;">Failed to load history.</td></tr>`;
+            }
+        }
+
+        loadData();
+
+        // Load Guild Name (Reuse Logic)
+        api(`/api/bots/${botId}/guild/${guildId}`).then(res => res.json()).then(data => {
+            document.getElementById('guild-header').innerHTML = `
+                 <div style="display: flex; align-items: center; gap: 24px;">
+                <div style="position: relative;">
+                    <div style="position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(to right, #fae022, #f26a24); opacity: 0.3; filter: blur(20px);"></div>
+                    <img src="${data.icon ? `https://cdn.discordapp.com/icons/${data.id}/${data.icon}.png` : 'https://cdn.discordapp.com/embed/avatars/0.png'}" 
+                        alt="" style="position: relative; width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(250, 224, 34, 0.3);">
+                </div>
+                <div>
+                    <h1 style="font-size: 28px; font-weight: 700; color: white; margin: 0; line-height: 1.2;">
+                         ${data.name}
+                    </h1>
+                </div>
+            </div>
+            `;
+        });
+
+        // Anime.js
+        anime({
+            targets: '.card',
+            translateY: [20, 0],
+            opacity: [0, 1],
+            delay: anime.stagger(100),
+            easing: 'easeOutExpo'
+        });
+
+    </script>
+</body>
+
+</html>

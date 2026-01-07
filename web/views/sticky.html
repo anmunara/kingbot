@@ -1,0 +1,594 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sticky Messages | KingBot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-card {
+            background: rgba(88, 101, 242, 0.1);
+            border: 1px solid rgba(88, 101, 242, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .info-card i {
+            font-size: 24px;
+            color: var(--accent);
+            margin-top: 4px;
+        }
+
+        .discord-preview {
+            background: #36393f;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 8px;
+            position: relative;
+            font-family: 'gg sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #dcddde;
+        }
+
+        .discord-message {
+            display: flex;
+            gap: 16px;
+        }
+
+        .discord-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: url('https://cdn.discordapp.com/embed/avatars/0.png');
+            background-size: cover;
+            flex-shrink: 0;
+        }
+
+        .discord-content {
+            flex: 1;
+        }
+
+        .discord-author {
+            font-weight: 500;
+            color: #fff;
+            margin-right: 4px;
+            font-size: 16px;
+        }
+
+        .discord-bot-tag {
+            background: #5865F2;
+            color: white;
+            font-size: 10px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            vertical-align: middle;
+            margin-left: 4px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .discord-timestamp {
+            font-size: 12px;
+            color: #72767d;
+            margin-left: 8px;
+        }
+
+        .discord-text {
+            margin-top: 4px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* Editor Transition */
+        .editor-wrapper {
+            opacity: 0;
+            transform: translateY(20px);
+            display: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <a href="/dashboard" class="logo">👑 <span>KingBot</span></a>
+            <div class="user-info" id="user-info"></div>
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebar-container"></nav>
+
+    <main class="main-content">
+        <div class="section">
+            <div class="page-header">
+                <div>
+                    <h2><i class="fas fa-thumbtack" style="color: var(--accent); margin-right: 10px;"></i> Sticky
+                        Messages</h2>
+                    <p>Detailed configuration for sticky messages in your server.</p>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="info-card">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <h4 style="margin: 0 0 8px 0; color: white;">How it works</h4>
+                    <p style="margin: 0; font-size: 0.95rem; opacity: 0.9;">
+                        A sticky message stays at the bottom of the channel. When someone sends a message,
+                        the bot will delete the previous sticky message and send a new one.
+                        <strong>Note:</strong> Ensure the bot has "Manage Messages" permission.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid-layout">
+                <!-- Left Column: Selection -->
+                <div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-hashtag"></i> Select Channel</h3>
+                        </div>
+                        <div class="card-body">
+                            <p style="margin-bottom: 15px; color: var(--text-secondary);">
+                                Choose the channel where you want the sticky message to appear.
+                            </p>
+                            <div class="form-group">
+                                <label>Channel</label>
+                                <select id="channel-select" class="form-input" style="width: 100%; padding: 12px;">
+                                    <option value="">Select a channel...</option>
+                                </select>
+                            </div>
+
+                            <div id="delete-btn-container"
+                                style="display: none; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                                <button class="btn btn-danger" onclick="deleteSticky()" style="width: 100%;">
+                                    <i class="fas fa-trash"></i> Delete Sticky Message
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Editor & Preview -->
+                <div>
+                    <div class="empty-state" id="empty-state">
+                        <i class="fas fa-mouse-pointer"></i>
+                        <h3>Select a channel to start</h3>
+                        <p>Once you select a channel, the editor will appear here.</p>
+                    </div>
+
+                    <div class="editor-wrapper" id="editor-wrapper">
+                        <div class="card">
+                            <div class="card-header" style="justify-content: space-between;">
+                                <h3><i class="fas fa-pen"></i> Message Editor</h3>
+                                <span class="badge badge-success">Live Preview</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label>Message Content</label>
+                                    <textarea id="sticky-content" class="form-input" rows="6"
+                                        placeholder="Type your message here... Supports **Markdown**, links, and emojis."></textarea>
+                                    <div style="text-align: right; margin-top: 5px;">
+                                        <a href="https://support.discord.com/hc/en-us/articles/210298617-Markdown-Text-101-Chat-Formatting-Bold-Italic-Underline-"
+                                            target="_blank" style="font-size: 12px; color: var(--accent);">Markdown
+                                            Guide</a>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Preview</label>
+                                    <div class="discord-preview">
+                                        <div class="discord-message">
+                                            <div class="discord-avatar"></div>
+                                            <div class="discord-content">
+                                                <div>
+                                                    <span class="discord-author">KingBot</span>
+                                                    <span class="discord-bot-tag">BOT</span>
+                                                    <span class="discord-timestamp">Today at 12:00 PM</span>
+                                                </div>
+                                                <div class="discord-text" id="preview-text">Type something...</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions" style="margin-top: 24px;">
+                                    <button class="btn btn-primary" onclick="saveSticky()" style="width: 100%;">
+                                        <i class="fas fa-save"></i> Save & Activate
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script>
+        const botId = window.location.pathname.split('/')[2];
+        const guildId = window.location.pathname.split('/')[4];
+        let allStickies = [];
+        let currentChannelId = null;
+
+        async function init() {
+            try {
+                // Render Sidebar
+                renderSidebar(guildId, botId);
+
+                // 1. Fetch User Info
+                const userRes = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const userData = await userRes.json();
+                const user = userData.user;
+                if (user) {
+                    const avatarUrl = user.avatar
+                        ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+                        : 'https://cdn.discordapp.com/embed/avatars/0.png';
+                    document.getElementById('user-info').innerHTML = `
+                        <img src="${avatarUrl}" alt="" class="avatar">
+                        <span style="font-weight: 500;">${user.username}</span>
+                        <button onclick="logout()" class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px; margin-left: 10px;">Logout</button>
+                    `;
+                }
+
+                // 3. Fetch Channels
+                const channelsRes = await fetch(`/api/bots/${botId}/guild/${guildId}/channels`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const channels = await channelsRes.json();
+                const select = document.getElementById('channel-select');
+
+                channels.filter(c => c.type === 0).forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = `#${c.name}`;
+                    select.appendChild(opt);
+                });
+
+                // 4. Fetch Existing Stickies
+                await loadStickies();
+
+                // Attach Listeners
+                select.addEventListener('change', onChannelSelect);
+                document.getElementById('sticky-content').addEventListener('input', updatePreview);
+
+                // Entrance Animation
+                anime({
+                    targets: '.card',
+                    translateY: [20, 0],
+                    opacity: [0, 1],
+                    delay: anime.stagger(100),
+                    easing: 'easeOutExpo'
+                });
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Failed to load initial data',
+                    background: '#1e1e1e',
+                    color: '#fff'
+                });
+            }
+        }
+
+        async function loadStickies() {
+            const stickyRes = await fetch(`/api/sticky/${botId}/${guildId}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            allStickies = await stickyRes.json();
+        }
+
+        function renderSidebar(gId, bId) {
+            const sidebarHtml = `
+                <div style="padding: 24px; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div style="width: 40px; height: 40px; background: rgba(88, 101, 242, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-robot" style="font-size: 20px; color: var(--accent);"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 16px; font-weight: 600; margin: 0;">KingBot</h3>
+                            <span style="font-size: 12px; color: var(--text-secondary);">Dashboard</span>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="sidebar-nav" style="padding: 12px;">
+                    <li>
+                        <a href="/dashboard">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Dashboard
+                        </a>
+                    </li>
+                    
+                    <li style="margin-top: 12px; margin-bottom: 8px; padding: 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Manage</li>
+                    
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}">
+                            <i class="fas fa-home"></i>
+                            Overview
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#panels">
+                            <i class="fas fa-columns"></i>
+                            Panels
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#templates">
+                            <i class="fas fa-copy"></i>
+                            Templates
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#tickets">
+                            <i class="fas fa-ticket-alt"></i>
+                            Tickets
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#commands">
+                            <i class="fas fa-terminal"></i>
+                            Commands
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#stats">
+                            <i class="fas fa-chart-bar"></i>
+                            Statistics
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#settings">
+                            <i class="fas fa-cog"></i>
+                            Settings
+                        </a>
+                    </li>
+
+                    <li style="margin-top: 12px; margin-bottom: 8px; padding: 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Features</li>
+
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/welcome">
+                            <i class="fas fa-door-open"></i>
+                            Welcome & Leave
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/embeds">
+                            <i class="fas fa-envelope-open-text"></i>
+                            Embed Messages
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/invites">
+                            <i class="fas fa-envelope"></i>
+                            Invite Tracker
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/sticky" class="active">
+                            <i class="fas fa-thumbtack"></i>
+                            Sticky Messages
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#vouch">
+                            <i class="fas fa-star"></i>
+                            Vouch System
+                        </a>
+                    </li>
+
+                    <li style="margin-top: 12px; margin-bottom: 8px; padding: 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Help</li>
+
+                    <li>
+                        <a href="/docs?lang=id">
+                            <i class="fas fa-book"></i>
+                            Documentation
+                        </a>
+                    </li>
+                </ul>
+            `;
+            document.getElementById('sidebar-container').innerHTML = sidebarHtml;
+        }
+
+        function onChannelSelect() {
+            const channelId = document.getElementById('channel-select').value;
+            currentChannelId = channelId;
+
+            const emptyState = document.getElementById('empty-state');
+            const editorWrapper = document.getElementById('editor-wrapper');
+            const deleteContainer = document.getElementById('delete-btn-container');
+            const textArea = document.getElementById('sticky-content');
+
+            if (!channelId) {
+                emptyState.style.display = 'block';
+                editorWrapper.style.display = 'none';
+                editorWrapper.style.opacity = '0';
+                deleteContainer.style.display = 'none';
+                return;
+            }
+
+            // UI Transition
+            emptyState.style.display = 'none';
+            editorWrapper.style.display = 'block';
+            anime({
+                targets: '#editor-wrapper',
+                opacity: [0, 1],
+                translateY: [20, 0],
+                duration: 400,
+                easing: 'easeOutQuad'
+            });
+
+            // Check if sticky exists
+            const existing = allStickies.find(s => s.channel_id === channelId);
+
+            if (existing) {
+                textArea.value = existing.content;
+                deleteContainer.style.display = 'block';
+            } else {
+                textArea.value = '';
+                deleteContainer.style.display = 'none';
+            }
+
+            updatePreview();
+        }
+
+        function updatePreview() {
+            let content = document.getElementById('sticky-content').value;
+            const previewBox = document.getElementById('preview-text');
+
+            if (!content) {
+                previewBox.innerHTML = '<span style="opacity:0.5; font-style:italic;">Message content will appear here...</span>';
+                return;
+            }
+
+            // Simple Markdown Parsing for Preview
+            content = content
+                .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+                .replace(/\*(.*?)\*/g, '<i>$1</i>')
+                .replace(/__(.*?)__/g, '<u>$1</u>')
+                .replace(/~~(.*?)~~/g, '<s>$1</s>')
+                .replace(/`(.*?)`/g, '<code style="background:#2f3136; padding:2px 4px; border-radius:3px;">$1</code>')
+                .replace(/\n/g, '<br>');
+
+            previewBox.innerHTML = content;
+        }
+
+        async function saveSticky() {
+            const content = document.getElementById('sticky-content').value;
+
+            if (!currentChannelId) {
+                Swal.fire('Error', 'Please select a channel', 'error');
+                return;
+            }
+            if (!content.trim()) {
+                Swal.fire('Error', 'Content cannot be empty', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/sticky/${botId}/${guildId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ channelId: currentChannelId, content })
+                });
+
+                if (res.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Saved!',
+                        text: 'Sticky message is now active.',
+                        background: '#1e1e1e',
+                        color: '#fff',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    await loadStickies();
+                    onChannelSelect(); // Refresh UI state (show delete button)
+                } else {
+                    throw new Error('Failed to save');
+                }
+            } catch (error) {
+                Swal.fire('Error', error.message, 'error');
+            }
+        }
+
+        async function deleteSticky() {
+            const confirm = await Swal.fire({
+                title: 'Are you sure?',
+                text: "This will remove the sticky message from this channel.",
+                icon: 'warning',
+                background: '#1e1e1e',
+                color: '#fff',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, remove it!'
+            });
+
+            if (confirm.isConfirmed) {
+                try {
+                    const res = await fetch(`/api/sticky/${botId}/${guildId}/${currentChannelId}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+
+                    if (res.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Deleted!',
+                            text: 'Sticky message removed.',
+                            background: '#1e1e1e',
+                            color: '#fff',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+
+                        await loadStickies();
+                        onChannelSelect(); // Refresh UI to clear delete button
+                    } else {
+                        throw new Error('Failed to delete');
+                    }
+                } catch (error) {
+                    Swal.fire('Error', error.message, 'error');
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>

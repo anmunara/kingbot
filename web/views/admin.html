@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - KingBot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <a href="/dashboard" class="logo">👑 <span>KingBot</span></a>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <span class="badge badge-warning" style="font-size: 12px;">🔒 ADMIN</span>
+                <a href="/dashboard" class="btn btn-secondary" style="padding: 8px 16px;">← Dashboard</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="padding: 40px 20px; max-width: 1400px;">
+        <!-- Stats Row -->
+        <div class="grid grid-4" id="stats-grid" style="margin-bottom: 30px;">
+            <div class="card admin-stat-card" style="opacity: 0;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div
+                        style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.05)); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-users" style="color: #22C55E; font-size: 24px;"></i>
+                    </div>
+                    <div>
+                        <div id="stat-users" style="font-size: 32px; font-weight: 700; color: white;">0</div>
+                        <div style="font-size: 12px; color: #9ca3af; text-transform: uppercase;">Total Users</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card admin-stat-card" style="opacity: 0;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div
+                        style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, rgba(250, 224, 34, 0.2), rgba(250, 224, 34, 0.05)); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-robot" style="color: #FAE022; font-size: 24px;"></i>
+                    </div>
+                    <div>
+                        <div id="stat-bots" style="font-size: 32px; font-weight: 700; color: white;">0</div>
+                        <div style="font-size: 12px; color: #9ca3af; text-transform: uppercase;">Total Bots</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card admin-stat-card" style="opacity: 0;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div
+                        style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.05)); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-play" style="color: #3B82F6; font-size: 24px;"></i>
+                    </div>
+                    <div>
+                        <div id="stat-active" style="font-size: 32px; font-weight: 700; color: white;">0</div>
+                        <div style="font-size: 12px; color: #9ca3af; text-transform: uppercase;">Active Bots</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card admin-stat-card" style="opacity: 0;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div
+                        style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05)); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-ban" style="color: #EF4444; font-size: 24px;"></i>
+                    </div>
+                    <div>
+                        <div id="stat-banned" style="font-size: 32px; font-weight: 700; color: white;">0</div>
+                        <div style="font-size: 12px; color: #9ca3af; text-transform: uppercase;">Banned</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-2" style="gap: 24px;">
+            <!-- Invite Codes Section -->
+            <div class="card" style="opacity: 0;" id="invite-section">
+                <div class="card-header"
+                    style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 16px;">
+                    <h2 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-ticket-alt" style="color: #FAE022;"></i>
+                        Invite Codes
+                    </h2>
+                    <button class="btn btn-primary" onclick="showGenerateModal()">+ Generate Code</button>
+                </div>
+                <div id="codes-list" style="max-height: 400px; overflow-y: auto;">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div class="card" style="opacity: 0;" id="users-section">
+                <div class="card-header"
+                    style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 16px;">
+                    <h2 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-users-cog" style="color: #22C55E;"></i>
+                        Users
+                    </h2>
+                </div>
+                <div id="users-list" style="max-height: 400px; overflow-y: auto;">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backup Section -->
+        <div class="card" style="margin-top: 24px; opacity: 0;" id="backup-section">
+            <div class="card-header"
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 16px;">
+                <h2 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-cloud-upload-alt" style="color: #3B82F6;"></i>
+                    Database Backup
+                </h2>
+                <button class="btn btn-primary" onclick="triggerBackup()" id="backup-btn">
+                    <i class="fas fa-sync"></i> Backup Now
+                </button>
+            </div>
+            <div id="backup-status" style="margin-bottom: 16px;">
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <div
+                        style="flex: 1; min-width: 200px; background: var(--bg-secondary); padding: 16px; border-radius: 12px;">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Last Backup</div>
+                        <div id="last-backup-time" style="font-weight: 600; color: white;">Never</div>
+                    </div>
+                    <div
+                        style="flex: 1; min-width: 200px; background: var(--bg-secondary); padding: 16px; border-radius: 12px;">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Status</div>
+                        <div id="backup-result" style="font-weight: 600;">-</div>
+                    </div>
+                    <div
+                        style="flex: 1; min-width: 200px; background: var(--bg-secondary); padding: 16px; border-radius: 12px;">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Google Drive</div>
+                        <div id="gdrive-status" style="font-weight: 600;">-</div>
+                    </div>
+                    <div
+                        style="flex: 1; min-width: 200px; background: var(--bg-secondary); padding: 16px; border-radius: 12px;">
+                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Discord</div>
+                        <div id="discord-status" style="font-weight: 600;">-</div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--text-secondary);">Recent Backups</h3>
+                <div id="backups-list" style="max-height: 200px; overflow-y: auto;">
+                    <div style="text-align: center; padding: 20px; color: var(--text-muted);">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Generate Code Modal -->
+    <div id="generate-modal" class="modal" style="display: none;">
+        <div class="card" style="width: 400px; max-width: 95%;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="card-title">Generate Invite Code</h2>
+                <button onclick="hideModal()" class="btn-close">✕</button>
+            </div>
+            <form id="generate-form">
+                <div class="form-group">
+                    <label class="form-label">Max Uses</label>
+                    <input type="number" class="form-input" name="max_uses" value="1" min="1" max="100">
+                    <small style="color: var(--text-muted);">Set to 0 for unlimited uses</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Expires In (Days)</label>
+                    <input type="number" class="form-input" name="expires_days" value="7" min="0" max="365">
+                    <small style="color: var(--text-muted);">Set to 0 for never expires</small>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Generate</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Generated Code Display Modal -->
+    <div id="code-display-modal" class="modal" style="display: none;">
+        <div class="card" style="width: 400px; max-width: 95%; text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+            <h2 style="margin-bottom: 16px;">Code Generated!</h2>
+            <div id="generated-code"
+                style="background: var(--bg-primary); border: 2px dashed var(--primary); padding: 20px; border-radius: 12px; font-size: 24px; font-weight: 700; letter-spacing: 4px; color: #FAE022; font-family: monospace; margin-bottom: 16px;">
+            </div>
+            <button class="btn btn-primary" onclick="copyCode()" style="width: 100%;">
+                <i class="fas fa-copy"></i> Copy Code
+            </button>
+            <button class="btn btn-secondary" onclick="hideCodeModal()"
+                style="width: 100%; margin-top: 10px;">Close</button>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="edit-user-modal" class="modal" style="display: none;">
+        <div class="card" style="width: 400px; max-width: 95%;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="card-title">Edit User Limits</h2>
+                <button onclick="hideEditModal()" class="btn-close">✕</button>
+            </div>
+            <form id="edit-user-form">
+                <input type="hidden" name="userId" id="edit-user-id">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" id="edit-user-name" disabled style="opacity: 0.7;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Max Bots</label>
+                    <input type="number" class="form-input" name="max_bots" id="edit-max-bots" min="1" max="100"
+                        value="2">
+                    <small style="color: var(--text-muted);">Maximum number of bots this user can add</small>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideEditModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login';
+        }
+
+        async function api(url, options = {}) {
+            const res = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    ...options.headers,
+                },
+            });
+            return res;
+        }
+
+        // Load Stats
+        async function loadStats() {
+            try {
+                const res = await api('/api/admin/stats');
+                if (!res.ok) {
+                    if (res.status === 403) {
+                        alert('Admin access required');
+                        window.location.href = '/dashboard';
+                        return;
+                    }
+                    throw new Error('Failed to load stats');
+                }
+                const stats = await res.json();
+
+                document.getElementById('stat-users').textContent = stats.totalUsers;
+                document.getElementById('stat-bots').textContent = stats.totalBots;
+                document.getElementById('stat-active').textContent = stats.activeBots;
+                document.getElementById('stat-banned').textContent = stats.bannedUsers;
+
+                // Animate stats
+                anime({
+                    targets: '.admin-stat-card',
+                    opacity: [0, 1],
+                    translateY: [20, 0],
+                    delay: anime.stagger(100),
+                    duration: 600,
+                    easing: 'easeOutExpo'
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Load Invite Codes
+        async function loadCodes() {
+            try {
+                const res = await api('/api/admin/codes');
+                const codes = await res.json();
+                const container = document.getElementById('codes-list');
+
+                if (codes.length === 0) {
+                    container.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                        <i class="fas fa-ticket-alt" style="font-size: 32px; margin-bottom: 10px;"></i>
+                        <p>No invite codes yet</p>
+                    </div>`;
+                    return;
+                }
+
+                container.innerHTML = codes.map(code => {
+                    const isExpired = code.expires_at && new Date(code.expires_at) < new Date();
+                    const isUsedUp = code.max_uses > 0 && code.uses_count >= code.max_uses;
+                    const statusClass = isExpired ? 'badge-error' : isUsedUp ? 'badge-warning' : 'badge-success';
+                    const statusText = isExpired ? 'EXPIRED' : isUsedUp ? 'USED UP' : 'ACTIVE';
+
+                    return `
+                        <div class="code-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 8px;">
+                            <div>
+                                <code style="font-size: 16px; font-weight: 600; letter-spacing: 2px; color: #FAE022;">${code.code}</code>
+                                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                                    ${code.uses_count}/${code.max_uses || '∞'} uses • ${code.expires_at ? new Date(code.expires_at).toLocaleDateString() : 'Never expires'}
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="badge ${statusClass}" style="font-size: 10px;">${statusText}</span>
+                                <button onclick="deleteCode(${code.id})" class="btn btn-danger" style="padding: 6px 10px; font-size: 12px;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Load Users
+        async function loadUsers() {
+            try {
+                const res = await api('/api/admin/users');
+                const users = await res.json();
+                const container = document.getElementById('users-list');
+
+                container.innerHTML = users.map(user => {
+                    const statusBadge = user.is_banned
+                        ? '<span class="badge badge-error">BANNED</span>'
+                        : user.is_admin
+                            ? '<span class="badge badge-warning">ADMIN</span>'
+                            : '<span class="badge badge-success">ACTIVE</span>';
+
+                    return `
+                        <div class="user-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 8px;">
+                            <div>
+                                <div style="font-weight: 600; color: white;">${user.username || user.email}</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">
+                                    ${user.email} • <span style="color: #FAE022;">${user.bots_count}/${user.max_bots} bots</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                ${statusBadge}
+                                ${!user.is_admin ? `
+                                    <button onclick="showEditModal(${user.id}, '${user.username || user.email}', ${user.max_bots})" class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px;" title="Edit Limits">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button onclick="toggleBan(${user.id}, ${user.is_banned})" class="btn ${user.is_banned ? 'btn-success' : 'btn-warning'}" style="padding: 6px 10px; font-size: 12px;">
+                                        <i class="fas fa-${user.is_banned ? 'unlock' : 'ban'}"></i>
+                                    </button>
+                                    <button onclick="deleteUser(${user.id})" class="btn btn-danger" style="padding: 6px 10px; font-size: 12px;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Modals
+        function showGenerateModal() {
+            document.getElementById('generate-modal').style.display = 'flex';
+        }
+        function hideModal() {
+            document.getElementById('generate-modal').style.display = 'none';
+        }
+        function hideCodeModal() {
+            document.getElementById('code-display-modal').style.display = 'none';
+        }
+
+        // Edit User Modal
+        function showEditModal(userId, username, maxBots) {
+            document.getElementById('edit-user-id').value = userId;
+            document.getElementById('edit-user-name').value = username;
+            document.getElementById('edit-max-bots').value = maxBots;
+            document.getElementById('edit-user-modal').style.display = 'flex';
+        }
+        function hideEditModal() {
+            document.getElementById('edit-user-modal').style.display = 'none';
+        }
+
+        // Save User Limits
+        document.getElementById('edit-user-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('edit-user-id').value;
+            const maxBots = parseInt(document.getElementById('edit-max-bots').value) || 2;
+            try {
+                const res = await api(`/api/admin/users/${userId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ max_bots: maxBots })
+                });
+                if (res.ok) {
+                    hideEditModal();
+                    loadUsers();
+                    alert('User limits updated!');
+                } else {
+                    const data = await res.json();
+                    alert(data.error);
+                }
+            } catch (e) {
+                alert('Failed to update user');
+            }
+        };
+
+        // Generate Code
+        document.getElementById('generate-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const form = new FormData(e.target);
+            try {
+                const res = await api('/api/admin/codes', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        max_uses: parseInt(form.get('max_uses')) || 1,
+                        expires_days: parseInt(form.get('expires_days')) || 0
+                    })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    hideModal();
+                    document.getElementById('generated-code').textContent = data.code;
+                    document.getElementById('code-display-modal').style.display = 'flex';
+                    loadCodes();
+                } else {
+                    alert(data.error);
+                }
+            } catch (e) {
+                alert('Failed to generate code');
+            }
+        };
+
+        function copyCode() {
+            const code = document.getElementById('generated-code').textContent;
+            navigator.clipboard.writeText(code);
+            alert('Code copied to clipboard!');
+        }
+
+        async function deleteCode(id) {
+            if (!confirm('Delete this invite code?')) return;
+            try {
+                await api(`/api/admin/codes/${id}`, { method: 'DELETE' });
+                loadCodes();
+            } catch (e) {
+                alert('Failed to delete code');
+            }
+        }
+
+        async function toggleBan(userId, currentlyBanned) {
+            const action = currentlyBanned ? 'unban' : 'ban';
+            if (!confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} this user?`)) return;
+            try {
+                await api(`/api/admin/users/${userId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ is_banned: currentlyBanned ? 0 : 1 })
+                });
+                loadUsers();
+                loadStats();
+            } catch (e) {
+                alert('Failed to update user');
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('Delete this user and all their bots? This cannot be undone.')) return;
+            try {
+                await api(`/api/admin/users/${userId}`, { method: 'DELETE' });
+                loadUsers();
+                loadStats();
+            } catch (e) {
+                alert('Failed to delete user');
+            }
+        }
+
+        // Init
+        loadStats();
+        loadCodes();
+        loadUsers();
+        loadBackupStatus();
+
+        // Backup Functions
+        async function loadBackupStatus() {
+            try {
+                const res = await api('/api/admin/backup/status');
+                const data = await res.json();
+
+                // Update status display
+                if (data.status.lastRun) {
+                    const date = new Date(data.status.lastRun);
+                    document.getElementById('last-backup-time').textContent = date.toLocaleString('id-ID');
+                    document.getElementById('backup-result').innerHTML = data.status.success
+                        ? '<span style="color: #22C55E;">✅ Success</span>'
+                        : '<span style="color: #EF4444;">❌ Failed</span>';
+                    document.getElementById('gdrive-status').innerHTML = data.status.googleDrive
+                        ? '<span style="color: #22C55E;">☁️ Uploaded</span>'
+                        : '<span style="color: #FAE022;">📁 Local Only</span>';
+                    document.getElementById('discord-status').innerHTML = data.status.discord
+                        ? '<span style="color: #5865F2;">🎮 Sent</span>'
+                        : '<span style="color: #FAE022;">-</span>';
+                }
+
+                // Update backups list
+                const container = document.getElementById('backups-list');
+                if (data.backups.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-muted);">No backups yet</div>';
+                } else {
+                    container.innerHTML = data.backups.slice(0, 7).map(b => `
+                        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: var(--bg-secondary); border-radius: 6px; margin-bottom: 6px;">
+                            <span style="font-family: monospace; font-size: 13px;">${b.name}</span>
+                            <span style="color: var(--text-muted); font-size: 12px;">${(b.size / 1024).toFixed(1)} KB</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function triggerBackup() {
+            const btn = document.getElementById('backup-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Backing up...';
+
+            try {
+                const res = await api('/api/admin/backup/run', { method: 'POST' });
+                const result = await res.json();
+
+                if (result.success) {
+                    alert('✅ Backup completed successfully!');
+                } else {
+                    alert('⚠️ Backup completed with issues: ' + result.message);
+                }
+
+                loadBackupStatus();
+            } catch (e) {
+                alert('❌ Backup failed');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sync"></i> Backup Now';
+            }
+        }
+
+        // Animate sections
+        setTimeout(() => {
+            anime({
+                targets: '#invite-section, #users-section, #backup-section',
+                opacity: [0, 1],
+                translateY: [30, 0],
+                delay: anime.stagger(150),
+                duration: 800,
+                easing: 'easeOutExpo'
+            });
+        }, 400);
+    </script>
+
+    <style>
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .grid-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .admin-stat-card,
+        .code-item,
+        .user-item {
+            transition: all 0.3s ease;
+        }
+
+        .admin-stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .code-item:hover,
+        .user-item:hover {
+            background: var(--bg-tertiary) !important;
+        }
+    </style>
+</body>
+
+</html>

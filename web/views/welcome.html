@@ -1,0 +1,586 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome & Goodbye - KingBot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <a href="/dashboard" class="logo">👑 <span>KingBot</span></a>
+            <div class="user-info" id="user-info"></div>
+        </div>
+    </header>
+
+    <nav class="sidebar" id="sidebar-container"></nav>
+
+    <main class="main-content">
+        <div id="section-welcome" class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h1>👋 Welcome & Goodbye Settings</h1>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span id="save-status"></span>
+                    <button type="submit" form="welcome-form" class="btn btn-primary" id="saveBtn">💾 Save
+                        Settings</button>
+                </div>
+            </div>
+
+            <form id="welcome-form">
+                <div class="grid grid-2" style="align-items: start;">
+                    <!-- Welcome Settings -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">👋 Welcome Message</h3>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <label style="font-size: 14px; color: var(--text-secondary);">Enabled</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="welcome_enabled">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Welcome Channel</label>
+                            <select class="form-select" id="welcome_channel_id">
+                                <option value="">Select a channel...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Message Content</label>
+                            <textarea class="form-input" id="welcome_message" rows="4"
+                                placeholder="Welcome {USER} to {SERVER}!"></textarea>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">
+                                Variables: <code>{USER}</code>, <code>{USER_TAG}</code>, <code>{SERVER}</code>,
+                                <code>{MEMBER_COUNT}</code>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Goodbye Settings -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">😢 Goodbye Message</h3>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <label style="font-size: 14px; color: var(--text-secondary);">Enabled</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="goodbye_enabled">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Goodbye Channel</label>
+                            <select class="form-select" id="goodbye_channel_id">
+                                <option value="">Select a channel...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Message Content</label>
+                            <textarea class="form-input" id="goodbye_message" rows="4"
+                                placeholder="{USER} has left the server."></textarea>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">
+                                Variables: <code>{USER}</code>, <code>{USER_TAG}</code>, <code>{SERVER}</code>,
+                                <code>{MEMBER_COUNT}</code>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Welcome Card Settings -->
+                    <div class="card" style="grid-column: span 2;">
+                        <div class="card-header">
+                            <h3 class="card-title">🖼️ Customize Welcome Card <span class="badge badge-success"
+                                    style="font-size: 10px; margin-left: 8px; background: #fae022; color: black;">PREMIUM</span>
+                            </h3>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <label style="font-size: 14px; color: var(--text-secondary);">Send a welcome
+                                    card</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="welcome_card_enabled">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div
+                            style="padding: 20px; background: #0f1114; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: center;">
+                            <!-- Preview -->
+                            <div id="card-preview"
+                                style="width: 500px; height: 200px; background-color: #2b2d31; background-size: cover; background-position: center; position: relative; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: all 0.3s ease;">
+                                <div id="card-overlay"
+                                    style="position: absolute; inset: 0; background: rgba(0,0,0,0.5);"></div>
+                                <div
+                                    style="position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: white; font-family: 'Inter', sans-serif;">
+                                    <div
+                                        style="width: 80px; height: 80px; border-radius: 50%; background: #333; margin-bottom: 15px; border: 3px solid #fff; overflow: hidden;">
+                                        <img src="https://cdn.discordapp.com/embed/avatars/0.png"
+                                            style="width: 100%; height: 100%;">
+                                    </div>
+                                    <h2 id="preview-user" style="margin: 0; font-weight: 700; font-size: 24px;">
+                                        User#1234</h2>
+                                    <p id="preview-text" style="margin: 5px 0 0 0; opacity: 0.8; font-size: 14px;">
+                                        Welcome to Server</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Font</label>
+                                <select class="form-select" id="card_font" onchange="updatePreview()">
+                                    <option value="Inter">Inter</option>
+                                    <option value="Arial">Arial</option>
+                                    <option value="Roboto">Roboto</option>
+                                    <option value="Poppins">Poppins</option>
+                                    <option value="Courier New">Courier New</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Text Color</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="color" class="form-input" id="card_text_color" value="#ffffff"
+                                        style="height: 40px; padding: 2px; width: 60px;" oninput="updatePreview()">
+                                    <input type="text" class="form-input" id="card_text_color_hex" value="#ffffff"
+                                        oninput="document.getElementById('card_text_color').value = this.value; updatePreview();">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Overlay Opacity: <span id="opacity-val">0.5</span></label>
+                                <input type="range" id="card_overlay_opacity" min="0" max="1" step="0.1" value="0.5"
+                                    style="width: 100%; accent-color: var(--primary);" oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Background Image</label>
+                                <input type="file" class="form-input" id="card_background_input" accept="image/*"
+                                    onchange="handleImageUpload(this)">
+                                <input type="hidden" id="remove_background" value="false">
+                                <small style="color: var(--text-muted);">Recommended: 1000x400px</small>
+                                <div style="margin-top: 5px;">
+                                    <button type="button" class="btn btn-danger"
+                                        style="padding: 4px 10px; font-size: 12px;" onclick="removeBackground()">Remove
+                                        Background</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Auto Role Settings -->
+                        <div class="card" style="grid-column: span 2;">
+                            <div class="card-header">
+                                <h3 class="card-title">🛡️ Auto Role</h3>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <label style="font-size: 14px; color: var(--text-secondary);">Enabled</label>
+                                    <label class="switch">
+                                        <input type="checkbox" id="autorole_enabled">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Select Role</label>
+                                <select class="form-select" id="autorole_id">
+                                    <option value="">Select a role...</option>
+                                </select>
+                                <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">Role to assign
+                                    when a
+                                    new member joins.</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+            </form>
+        </div>
+    </main>
+
+    <script>
+        // Helper API function with Auth
+        async function api(url, options = {}) {
+            const token = localStorage.getItem('token');
+            const res = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    ...options.headers,
+                },
+            });
+            // Handle 401 specifically
+            if (res.status === 401) {
+                window.location.href = '/login';
+                throw new Error('Unauthorized');
+            }
+            return res;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        // Extract IDs from URL
+        const pathParts = window.location.pathname.split('/');
+        const botId = pathParts[2];
+        const guildId = pathParts[4];
+
+
+        // Load Data
+        async function loadData() {
+            // Trigger Animations immediately
+            anime({
+                targets: '.card',
+                translateY: [20, 0],
+                opacity: [0, 1],
+                delay: anime.stagger(100),
+                easing: 'easeOutExpo',
+                duration: 800
+            });
+
+            anime({
+                targets: '.btn-primary',
+                translateY: [20, 0],
+                opacity: [0, 1],
+                delay: 400,
+                easing: 'easeOutExpo',
+                duration: 800
+            });
+
+            try {
+                // Fetch Guild Data (Channels/Roles)
+                // We use the existing endpoint which returns everything
+                const guildRes = await api(`/api/bots/${botId}/guilds/${guildId}`);
+                if (!guildRes.ok) throw new Error('Failed to fetch guild data');
+                const guildData = await guildRes.json();
+
+                if (guildData.channels) populateSelect('welcome_channel_id', guildData.channels);
+                if (guildData.channels) populateSelect('goodbye_channel_id', guildData.channels);
+                if (guildData.roles) populateRoles('autorole_id', guildData.roles);
+
+                // Fetch Welcome Settings
+                const settingsRes = await api(`/api/welcome/${botId}/${guildId}`);
+                if (settingsRes.ok) {
+                    const settings = await settingsRes.json();
+                    if (settings) {
+                        document.getElementById('welcome_enabled').checked = !!settings.welcome_enabled;
+                        document.getElementById('welcome_channel_id').value = settings.welcome_channel_id || '';
+                        document.getElementById('welcome_message').value = settings.welcome_message || 'Welcome {USER} to {SERVER}!';
+
+                        document.getElementById('goodbye_enabled').checked = !!settings.goodbye_enabled;
+                        document.getElementById('goodbye_channel_id').value = settings.goodbye_channel_id || '';
+                        document.getElementById('goodbye_message').value = settings.goodbye_message || '{USER} has left the server.';
+
+
+                        document.getElementById('autorole_enabled').checked = !!settings.autorole_enabled;
+                        document.getElementById('autorole_id').value = settings.autorole_id || '';
+
+                        // Card Settings
+                        document.getElementById('welcome_card_enabled').checked = !!settings.welcome_card_enabled;
+                        document.getElementById('card_font').value = settings.card_font || 'Inter';
+                        document.getElementById('card_text_color').value = settings.card_text_color || '#ffffff';
+                        document.getElementById('card_text_color_hex').value = settings.card_text_color || '#ffffff';
+                        document.getElementById('card_overlay_opacity').value = settings.card_overlay_opacity !== undefined ? settings.card_overlay_opacity : 0.5;
+
+                        if (settings.card_background) {
+                            document.getElementById('card-preview').style.backgroundImage = `url('${settings.card_background}')`;
+                        } else {
+                            document.getElementById('card-preview').style.backgroundImage = 'none';
+                        }
+                        updatePreview();
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                const statusEl = document.getElementById('save-status');
+                statusEl.innerHTML = '<span style="color: var(--error);">Failed to load data</span>';
+            }
+
+
+        }
+
+        function populateSelect(elementId, items) {
+            const select = document.getElementById(elementId);
+            // Items are already filtered by backend
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = '#' + item.name;
+                select.appendChild(option);
+            });
+        }
+
+        function populateRoles(elementId, items) {
+            const select = document.getElementById(elementId);
+            items.filter(r => r.name !== '@everyone').forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.name;
+                // Handle default role color (#000000) - make it white for visibility
+                // Also check for '0' or 0 if that's how it comes sometimes
+                const color = (item.color === '#000000' || item.color === 0) ? '#ffffff' : item.color;
+                option.style.color = color;
+                select.appendChild(option);
+            });
+        }
+
+        // Helper to handle image preview
+        function handleImageUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('card-preview').style.backgroundImage = `url('${e.target.result}')`;
+                    document.getElementById('remove_background').value = "false";
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function removeBackground() {
+            document.getElementById('card-preview').style.backgroundImage = 'none';
+            document.getElementById('card_background_input').value = '';
+            document.getElementById('remove_background').value = "true";
+        }
+
+        function updatePreview() {
+            const font = document.getElementById('card_font').value;
+            const color = document.getElementById('card_text_color').value;
+            const opacity = document.getElementById('card_overlay_opacity').value;
+
+            document.getElementById('opacity-val').textContent = opacity;
+            document.getElementById('card-overlay').style.backgroundColor = `rgba(0,0,0,${opacity})`;
+            document.getElementById('preview-user').style.fontFamily = font;
+            document.getElementById('preview-user').style.color = color;
+            document.getElementById('preview-text').style.fontFamily = font;
+            document.getElementById('preview-text').style.color = color;
+        }
+
+        // Save Settings
+        document.getElementById('welcome-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            const statusEl = document.getElementById('save-status');
+
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            btn.disabled = true;
+            statusEl.innerHTML = '';
+
+            const formData = new FormData();
+            formData.append('welcome_enabled', document.getElementById('welcome_enabled').checked);
+            formData.append('welcome_channel_id', document.getElementById('welcome_channel_id').value);
+            formData.append('welcome_message', document.getElementById('welcome_message').value);
+            formData.append('goodbye_enabled', document.getElementById('goodbye_enabled').checked);
+            formData.append('goodbye_channel_id', document.getElementById('goodbye_channel_id').value);
+            formData.append('goodbye_message', document.getElementById('goodbye_message').value);
+            formData.append('autorole_enabled', document.getElementById('autorole_enabled').checked);
+            formData.append('autorole_id', document.getElementById('autorole_id').value);
+
+            // Card Settings
+            formData.append('welcome_card_enabled', document.getElementById('welcome_card_enabled').checked);
+            formData.append('card_font', document.getElementById('card_font').value);
+            formData.append('card_text_color', document.getElementById('card_text_color').value);
+            formData.append('card_overlay_opacity', document.getElementById('card_overlay_opacity').value);
+            formData.append('remove_background', document.getElementById('remove_background').value);
+
+            const fileInput = document.getElementById('card_background_input');
+            if (fileInput.files.length > 0) {
+                formData.append('card_background', fileInput.files[0]);
+            }
+
+            try {
+                // Determine API URL based on needs (api helper assumes JSON usually, so we use fetch directly or modify api helper?)
+                // API helper sets Content-Type to json automatically. We must NOT set Content-Type for FormData.
+                const token = localStorage.getItem('token');
+                const res = await fetch(`/api/welcome/${botId}/${guildId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                        // No Content-Type header! Fetch adds it with boundary for FormData
+                    },
+                    body: formData
+                });
+
+                if (res.status === 401) window.location.href = '/login';
+
+                const result = await res.json();
+
+                if (result.success) {
+                    statusEl.innerHTML = '<span style="color: var(--success);">✅ Settings saved successfully!</span>';
+                } else {
+                    statusEl.innerHTML = `<span style="color: var(--error);">❌ Error: ${result.error}</span>`;
+                }
+            } catch (error) {
+                console.error('Error saving:', error);
+                statusEl.innerHTML = '<span style="color: var(--error);">❌ Failed to save settings</span>';
+            } finally {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                setTimeout(() => { statusEl.innerHTML = ''; }, 3000);
+            }
+        };
+
+        // Check auth & Load
+        async function init() {
+            try {
+                const res = await api('/api/auth/me');
+                if (!res.ok) throw new Error('Not logged in');
+                const data = await res.json();
+                const user = data.user;
+
+                if (user) {
+                    const userInfo = document.getElementById('user-info');
+                    if (userInfo) {
+                        const avatarUrl = user.avatar
+                            ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+                            : 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+                        userInfo.innerHTML = `
+                        <img src="${avatarUrl}" alt="" class="avatar">
+                        <span style="font-weight: 500;">${user.username}</span>
+                        <button onclick="logout()" class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px; margin-left: 10px;">Logout</button>
+                    `;
+                    }
+                }
+                // Only load data if auth succeeds
+                loadData();
+            } catch (err) {
+                window.location.href = '/login';
+            }
+        }
+
+        {
+            const pathParts = window.location.pathname.split('/');
+            const bId = pathParts[2];
+            const gId = pathParts[4];
+            renderSidebar(gId, bId);
+        }
+
+        function renderSidebar(gId, bId) {
+            const sidebarHtml = `
+                <div style="padding: 24px; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+                        <div style="width: 40px; height: 40px; background: rgba(88, 101, 242, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-robot" style="font-size: 20px; color: var(--accent);"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 16px; font-weight: 600; margin: 0;">KingBot</h3>
+                            <span style="font-size: 12px; color: var(--text-secondary);">Dashboard</span>
+                        </div>
+                    </div>
+                </div>
+
+                <ul class="sidebar-nav" style="padding: 12px;">
+                    <li>
+                        <a href="/dashboard">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Dashboard
+                        </a>
+                    </li>
+                    
+                    <li style="margin-top: 12px; margin-bottom: 8px; padding: 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Manage</li>
+                    
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}">
+                            <i class="fas fa-home"></i>
+                            Overview
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#panels">
+                            <i class="fas fa-columns"></i>
+                            Panels
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#templates">
+                            <i class="fas fa-copy"></i>
+                            Templates
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#tickets">
+                            <i class="fas fa-ticket-alt"></i>
+                            Tickets
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#commands">
+                            <i class="fas fa-terminal"></i>
+                            Commands
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#stats">
+                            <i class="fas fa-chart-bar"></i>
+                            Statistics
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#settings">
+                            <i class="fas fa-cog"></i>
+                            Settings
+                        </a>
+                    </li>
+
+                    <li style="margin-top: 12px; margin-bottom: 8px; padding: 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Features</li>
+
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/welcome" class="active">
+                            <i class="fas fa-door-open"></i>
+                            Welcome & Leave
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/embeds">
+                            <i class="fas fa-envelope-open-text"></i>
+                            Embed Messages
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/invites">
+                            <i class="fas fa-envelope"></i>
+                            Invite Tracker
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}/sticky">
+                            <i class="fas fa-thumbtack"></i>
+                            Sticky Messages
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bot/${bId}/guild/${gId}#vouch">
+                            <i class="fas fa-star"></i>
+                            Vouch System
+                        </a>
+                    </li>
+
+                    <li style="margin-top: 12px; margin-bottom: 8px; padding: 0 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Help</li>
+
+                    <li>
+                        <a href="/docs?lang=id">
+                            <i class="fas fa-book"></i>
+                            Documentation
+                        </a>
+                    </li>
+                </ul>
+            `;
+            document.getElementById('sidebar-container').innerHTML = sidebarHtml;
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

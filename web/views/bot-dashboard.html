@@ -1,0 +1,296 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot Dashboard - KingBot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <a href="/dashboard" class="logo">👑 <span>KingBot</span></a>
+            <div class="user-info" id="user-info"></div>
+        </div>
+    </header>
+
+    <nav class="sidebar">
+        <ul class="sidebar-nav" id="sidebar-nav">
+            <li><a href="/dashboard">← Back to Dashboard</a></li>
+            <li><a href="#" class="active" onclick="showSection('overview')">📊 Overview</a></li>
+            <li><a href="#" onclick="showSection('guilds')">🏠 Servers</a></li>
+            <li><a href="#" onclick="showSection('invite')">➕ Invite Bot</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div id="bot-header" style="margin-bottom: 30px;">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <!-- Overview Section -->
+        <div id="section-overview">
+            <div class="grid grid-4" id="stats-grid">
+                <div class="card stat-card">
+                    <div class="stat-value" id="stat-guilds">-</div>
+                    <div class="stat-label">Servers</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-value" style="-webkit-text-fill-color: var(--success);" id="stat-tickets">-</div>
+                    <div class="stat-label">Total Tickets</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-value" id="stat-open">-</div>
+                    <div class="stat-label">Open Tickets</div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-value" id="stat-status">-</div>
+                    <div class="stat-label">Status</div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 30px;">
+                <h3 style="margin-bottom: 20px;">Quick Actions</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-success" id="btn-start" onclick="startBot()">▶️ Start Bot</button>
+                    <button class="btn btn-secondary" id="btn-stop" onclick="stopBot()">⏹️ Stop Bot</button>
+                    <button class="btn btn-danger" onclick="deleteBot()">🗑️ Delete Bot</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guilds Section -->
+        <div id="section-guilds" style="display: none;">
+            <h2 style="margin-bottom: 20px;">Connected Servers</h2>
+            <div id="guilds-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invite Section -->
+        <div id="section-invite" style="display: none;">
+            <div class="card">
+                <h2 style="margin-bottom: 20px;">Invite Your Bot</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Use the link below to add your bot to a Discord server.
+                </p>
+                <div id="invite-link"
+                    style="background: var(--bg-tertiary); padding: 16px; border-radius: 8px; word-break: break-all;">
+                    Loading...
+                </div>
+                <button class="btn btn-primary" style="margin-top: 15px;" onclick="copyInvite()">📋 Copy Link</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const botId = window.location.pathname.split('/')[2];
+
+        if (!token) {
+            window.location.href = '/login';
+        }
+
+        // User info
+        // Update User Info with Avatar
+        if (user.id) {
+            const avatarUrl = user.avatar
+                ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+                : 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+            document.getElementById('user-info').innerHTML = `
+                <img src="${avatarUrl}" alt="" class="avatar">
+                <span style="font-weight: 500;">${user.username}</span>
+                <button onclick="logout()" class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px; margin-left: 10px;">Logout</button>
+            `;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        async function api(url, options = {}) {
+            return fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    ...options.headers,
+                },
+            });
+        }
+
+        let botData = null;
+
+        async function loadBot() {
+            try {
+                const res = await api('/api/bots');
+                const bots = await res.json();
+                botData = bots.find(b => b.id == botId);
+
+                if (!botData) {
+                    window.location.href = '/dashboard';
+                    return;
+                }
+
+                // Header
+                document.getElementById('bot-header').innerHTML = `
+          <div style="display: flex; align-items: center; gap: 20px;">
+            <img src="${botData.bot_avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}" 
+                 alt="" style="width: 64px; height: 64px; border-radius: 50%;">
+            <div>
+              <h1 style="margin: 0;">${botData.bot_name || 'Unknown Bot'}</h1>
+              <span class="badge ${botData.status === 'running' ? 'badge-success' : 'badge-warning'}">${botData.status}</span>
+            </div>
+          </div>
+        `;
+
+                // Stats
+                document.getElementById('stat-guilds').textContent = botData.guilds_count || 0;
+                document.getElementById('stat-status').textContent = botData.status;
+
+                // Load stats
+                const statsRes = await api(`/api/bots/${botId}/stats`);
+                const stats = await statsRes.json();
+                document.getElementById('stat-tickets').textContent = stats.total_tickets || 0;
+                document.getElementById('stat-open').textContent = stats.open_tickets || 0;
+
+                // Update buttons
+                updateButtons();
+
+                // Invite link
+                if (botData.client_id) {
+                    const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${botData.client_id}&permissions=8&scope=bot%20applications.commands`;
+                    document.getElementById('invite-link').innerHTML = `<a href="${inviteUrl}" target="_blank">${inviteUrl}</a>`;
+                }
+
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function updateButtons() {
+            const startBtn = document.getElementById('btn-start');
+            const stopBtn = document.getElementById('btn-stop');
+
+            if (botData.status === 'running') {
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'inline-flex';
+            } else {
+                startBtn.style.display = 'inline-flex';
+                stopBtn.style.display = 'none';
+            }
+        }
+
+        async function startBot() {
+            try {
+                const res = await api(`/api/bots/${botId}/start`, { method: 'POST' });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    alert('Error: ' + data.error);
+                }
+
+                loadBot();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function stopBot() {
+            try {
+                await api(`/api/bots/${botId}/stop`, { method: 'POST' });
+                loadBot();
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function deleteBot() {
+            if (!confirm('Delete this bot? This cannot be undone.')) return;
+
+            try {
+                await api(`/api/bots/${botId}`, { method: 'DELETE' });
+                window.location.href = '/dashboard';
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function loadGuilds() {
+            try {
+                const res = await api(`/api/bots/${botId}/guilds`);
+
+                if (!res.ok) {
+                    document.getElementById('guilds-list').innerHTML = `
+            <div class="card" style="text-align: center; padding: 40px;">
+              <p style="color: var(--text-muted);">Bot must be running to see servers.</p>
+            </div>
+          `;
+                    return;
+                }
+
+                const guilds = await res.json();
+
+                if (guilds.length === 0) {
+                    document.getElementById('guilds-list').innerHTML = `
+            <div class="card" style="text-align: center; padding: 40px;">
+              <p style="color: var(--text-muted);">No servers yet. Invite your bot to a server.</p>
+            </div>
+          `;
+                    return;
+                }
+
+                document.getElementById('guilds-list').innerHTML = `
+          <div class="grid grid-2">
+            ${guilds.map(g => `
+              <a href="/bot/${botId}/guild/${g.id}" class="server-card" style="text-decoration: none;">
+                <div class="server-icon">
+                  ${g.icon ? `<img src="${g.icon}" alt="">` : g.name.substring(0, 2)}
+                </div>
+                <div class="server-info">
+                  <h3>${g.name}</h3>
+                  <p>${g.memberCount} members</p>
+                </div>
+              </a>
+            `).join('')}
+          </div>
+        `;
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function showSection(section) {
+            document.querySelectorAll('[id^="section-"]').forEach(el => el.style.display = 'none');
+            document.getElementById(`section-${section}`).style.display = 'block';
+
+            document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+            document.querySelector(`.sidebar-nav a[onclick*="${section}"]`)?.classList.add('active');
+
+            if (section === 'guilds') {
+                loadGuilds();
+            }
+        }
+
+        function copyInvite() {
+            const link = document.getElementById('invite-link').textContent;
+            navigator.clipboard.writeText(link);
+            alert('Copied!');
+        }
+
+        loadBot();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,620 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Details - KingBot</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Ticket Detail Specific Styles */
+        .tk-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 16px;
+        }
+
+        @media (min-width: 768px) {
+            .tk-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .tk-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .tk-card {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .tk-icon-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .tk-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .tk-value {
+            font-size: 16px;
+            color: white;
+        }
+
+        /* Chat Styles */
+        .chat-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 24px;
+        }
+
+        .chat-header {
+            background: var(--bg-secondary);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-messages {
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+            background: #36393f;
+            /* Discord Chat BG */
+            display: flex;
+            flex-direction: column-reverse;
+            /* Bottom up */
+        }
+
+        .message-group {
+            display: flex;
+            margin-bottom: 16px;
+            padding: 2px 0;
+            flex-direction: row;
+            /* Ensure row direction */
+        }
+
+        .message-group:hover {
+            background-color: rgba(4, 4, 5, 0.07);
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 16px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+
+        .message-username {
+            font-weight: 500;
+            color: white;
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
+        .message-timestamp {
+            font-size: 12px;
+            color: #72767d;
+        }
+
+        .message-text {
+            color: #dcddde;
+            font-size: 15px;
+            line-height: 1.375rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .bot-tag {
+            background: #5865F2;
+            color: white;
+            font-size: 10px;
+            padding: 1px 4px;
+            border-radius: 3px;
+            vertical-align: middle;
+            margin-left: 4px;
+        }
+
+        /* Mention Styles */
+        .mention {
+            background: rgba(88, 101, 242, 0.3);
+            color: #dee0fc;
+            border-radius: 3px;
+            padding: 0 2px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .mention:hover {
+            background: rgba(88, 101, 242, 0.6);
+            color: #fff;
+        }
+
+        .mention-role {
+            background: rgba(41, 43, 47, 0.5);
+            /* fallback */
+            border-radius: 3px;
+            padding: 0 2px;
+            font-weight: 500;
+        }
+
+        .mention-channel {
+            background: rgba(88, 101, 242, 0.3);
+            color: #dee0fc;
+            border-radius: 3px;
+            padding: 0 2px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .mention-channel:hover {
+            background: rgba(88, 101, 242, 0.6);
+            color: #fff;
+        }
+
+        .mention-channel::before {
+            content: "#";
+            margin-right: 1px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="container header-content">
+            <a href="/dashboard" class="logo">👑 <span>KingBot</span></a>
+            <div class="user-info" id="user-info"></div>
+        </div>
+    </header>
+
+    <div class="container" style="padding-top: 30px; padding-bottom: 60px;">
+        <!-- Header Actions -->
+        <div style="margin-bottom: 30px;">
+            <div style="margin-bottom: 20px;">
+                <h1 id="page-title" style="font-size: 32px; font-weight: 700; margin-bottom: 8px;">Loading...</h1>
+                <p style="color: var(--text-secondary); font-size: 18px;">View ticket details and messages</p>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button onclick="goBack()" class="btn btn-secondary">
+                    Back to History
+                </button>
+                <button id="btn-close-ticket" class="btn btn-danger"
+                    style="background: rgba(237, 66, 69, 0.1); color: #ed4245; border: 1px solid rgba(237, 66, 69, 0.3);"
+                    onclick="closeTicket()">
+                    <i class="fas fa-lock"></i> Close Ticket
+                </button>
+                <a id="btn-transcript" href="#" target="_blank" class="btn btn-secondary" style="display: none;">
+                    <i class="fas fa-file-alt"></i> Download Log
+                </a>
+            </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="card" style="margin-bottom: 24px; border: 1px solid var(--border);">
+            <div class="card-header"
+                style="background: var(--bg-secondary); margin: -24px -24px 20px -24px; padding: 16px 24px; border-bottom: 1px solid var(--border); border-radius: 12px 12px 0 0;">
+                <h2 style="font-size: 18px; font-weight: 600; color: white;">Ticket Information</h2>
+            </div>
+
+            <div class="tk-grid">
+                <!-- Ticket Name -->
+                <div class="tk-card">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <div class="tk-icon-circle" style="background: rgba(250, 224, 34, 0.1); color: #fae022;">
+                            <i class="fas fa-ticket-alt"></i>
+                        </div>
+                        <span class="tk-label">Ticket Name:</span>
+                    </div>
+                    <p class="tk-value" id="info-channel">Loading...</p>
+                </div>
+
+                <!-- Opened -->
+                <div class="tk-card">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <div class="tk-icon-circle" style="background: rgba(250, 224, 34, 0.1); color: #fae022;">
+                            <i class="far fa-clock"></i>
+                        </div>
+                        <span class="tk-label">Opened:</span>
+                    </div>
+                    <p class="tk-value" id="info-opened">Loading...</p>
+                </div>
+
+                <!-- Created By -->
+                <div class="tk-card">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <div class="tk-icon-circle" style="background: rgba(242, 106, 36, 0.1); color: #f26a24;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span class="tk-label">Created By:</span>
+                    </div>
+                    <p class="tk-value" id="info-author" style="font-family: monospace;">Loading...</p>
+                </div>
+
+                <!-- Ticket Number -->
+                <div class="tk-card">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <div class="tk-icon-circle" style="background: rgba(250, 224, 34, 0.1); color: #fae022;">
+                            <i class="fas fa-hashtag"></i>
+                        </div>
+                        <span class="tk-label">Ticket Number:</span>
+                    </div>
+                    <p class="tk-value" id="info-number">#000</p>
+                </div>
+
+                <!-- Status -->
+                <div class="tk-card">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <div class="tk-icon-circle" style="background: rgba(87, 242, 135, 0.1); color: #57F287;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <span class="tk-label">Status:</span>
+                    </div>
+                    <p class="tk-value" id="info-status" style="color: #57F287;">Open</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat History -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <div>
+                    <h2 style="font-size: 18px; font-weight: 600; color: white;">Message History</h2>
+                </div>
+                <span style="font-size: 12px; color: var(--text-muted);">Last 50 Messages</span>
+            </div>
+
+            <div class="chat-messages" id="chat-messages">
+                <div style="text-align: center; color: #72767d; padding: 40px;">
+                    <i class="fas fa-circle-notch fa-spin" style="font-size: 24px; margin-bottom: 10px;"></i>
+                    <p>Loading messages...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <iframe id="download-frame" style="display: none;"></iframe>
+    <script>
+        // Helper API function with Auth
+        async function api(endpoint, options = {}) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            };
+
+            const res = await fetch(endpoint, { ...options, headers });
+            if (res.status === 401) {
+                window.location.protocol === 'http:' ? window.location.href = '/login' : null;
+                return;
+            }
+            return res;
+        }
+
+        // Parse ID from URL
+        const pathParts = window.location.pathname.split('/');
+        // /server/:guildId/ticket/:ticketId
+        const guildId = pathParts[2];
+        const ticketId = pathParts[4];
+
+        // Load Current User Info
+        async function loadUserInfo() {
+            try {
+                const res = await api('/api/auth/me');
+                if (res.ok) {
+                    const { user } = await res.json();
+                    const avatarUrl = user.avatar
+                        ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
+                        : 'https://cdn.discordapp.com/embed/avatars/0.png';
+
+                    document.getElementById('user-info').innerHTML = `
+                        <img src="${avatarUrl}" alt="" class="avatar">
+                        <span>${user.username}</span>
+                        <a href="/auth/logout" class="btn btn-secondary" style="padding: 8px 16px;">Logout</a>
+                    `;
+                }
+            } catch (e) { console.error('Auth error', e); }
+        }
+
+        let currentBotId = null;
+
+        // Load Ticket Data
+        async function loadTicketDetails() {
+            try {
+                const botsRes = await api('/api/bots');
+                if (!botsRes.ok) throw new Error('Failed to load bots');
+                const bots = await botsRes.json();
+
+                // Try each bot to find the ticket
+                for (const bot of bots) {
+                    try {
+                        const testRes = await api(`/api/bots/${bot.id}/guild/${guildId}/ticket/${ticketId}`);
+                        if (testRes.ok) {
+                            currentBotId = bot.id;
+                            const data = await testRes.json();
+                            renderTicket(data);
+                            return;
+                        }
+                    } catch (e) { /* continue */ }
+                }
+
+                throw new Error('Ticket not found or access denied.');
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('chat-messages').innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #ed4245;">
+                        <i class="fas fa-exclamation-triangle"></i> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function renderTicket(data) {
+            const t = data.ticket;
+
+            // Metadata
+            document.getElementById('page-title').textContent = `Ticket #${t.ticket_number} - ${data.channelName || 'Unknown'}`;
+            document.getElementById('info-channel').textContent = data.channelName || `Ticket #${t.ticket_number}`;
+            document.getElementById('info-opened').textContent = new Date(t.opened_at).toLocaleString();
+            document.getElementById('info-author').textContent = t.user_id;
+            document.getElementById('info-number').textContent = `#${t.ticket_number}`;
+
+            const statusEl = document.getElementById('info-status');
+            statusEl.textContent = t.status.charAt(0).toUpperCase() + t.status.slice(1);
+            if (t.status === 'closed') {
+                statusEl.style.color = '#ed4245';
+                document.getElementById('btn-close-ticket').style.display = 'none';
+                if (t.transcript_url) {
+                    const btn = document.getElementById('btn-transcript');
+                    btn.style.display = 'inline-flex';
+                    btn.onclick = (e) => { e.preventDefault(); window.open(t.transcript_url, '_blank'); };
+                }
+            } else {
+                statusEl.style.color = '#57F287';
+                document.getElementById('btn-close-ticket').style.display = 'inline-flex';
+            }
+
+            // Messages
+            const chatBox = document.getElementById('chat-messages');
+            if (data.messages && data.messages.length > 0) {
+                // ... (rest of render logic is fine, keeping it minimal in replace if possible, but I need to replace the whole block if I changed loadTicketDetails)
+                // Actually, I can just replace loadTicketDetails and closeTicket separately if they are far apart.
+                // But loadTicketDetails calls renderTicket.
+                // Wait, I can just change loadTicketDetails and add currentBotId. 
+                // And replace closeTicket.
+
+                // Let's replace the block from loadTicketDetails start to closeTicket end.
+                // It's lines 362 to 463.
+
+                chatBox.innerHTML = data.messages.map(m => `
+                    <div class="message-group">
+                        <img src="${m.author.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}" class="message-avatar">
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-username" style="${m.author.color ? `color: ${m.author.color}` : ''}">
+                                    ${escapeHtml(m.author.username)}
+                                    ${m.author.bot ? '<span class="bot-tag">BOT</span>' : ''}
+                                </span>
+                                <span class="message-timestamp">${new Date(m.createdTimestamp).toLocaleString()}</span>
+                            </div>
+                            <div class="message-text">${formatDiscordContent(m.content, m.mentions)}</div>
+                            ${m.attachments && m.attachments.length > 0 ? `
+                                <div style="margin-top: 8px;">
+                                    ${m.attachments.map(a => `
+                                        <a href="${a.url}" target="_blank" style="display: block; max-width: 300px;">
+                                            ${a.contentType?.startsWith('image/')
+                        ? `<img src="${a.url}" style="max-width: 100%; border-radius: 4px;">`
+                        : `<div style="background: #2f3136; padding: 10px; border-radius: 4px; display: flex; align-items: center; gap: 8px;">
+                                                    <i class="fas fa-file"></i> ${a.name}
+                                                   </div>`
+                    }
+                                        </a>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                            ${m.embeds && m.embeds.length > 0 ? renderEmbeds(m.embeds, m.mentions) : ''}
+                            ${m.components && m.components.length > 0 ? renderComponents(m.components) : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                chatBox.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #72767d;">
+                        No messages found.
+                    </div>
+                `;
+            }
+        }
+
+        async function closeTicket() {
+            if (!confirm('Are you sure you want to close this ticket? This will delete the channel on Discord.')) return;
+
+            const btn = document.getElementById('btn-close-ticket');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Closing...';
+
+            try {
+                if (!currentBotId) throw new Error('Bot ID not found. Please wait for ticket to load.');
+
+                const res = await api(`/api/bots/${currentBotId}/guild/${guildId}/ticket/${ticketId}/close`, {
+                    method: 'POST'
+                });
+
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    const data = await res.json();
+                    throw new Error(data.error || 'Failed to close ticket');
+                }
+            } catch (error) {
+                console.error(error);
+                alert(error.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-lock"></i> Close Ticket';
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function formatDiscordContent(text, mentions) {
+            if (!text) return '';
+            let html = escapeHtml(text);
+
+            // 1. User Mentions
+            if (mentions && mentions.users) {
+                mentions.users.forEach(u => {
+                    const regex = new RegExp(`&lt;@!?${u.id}&gt;`, 'g');
+                    html = html.replace(regex, `<span class="mention" title="${u.username}">@${u.username}</span>`);
+                });
+            }
+            html = html.replace(/&lt;@!?(\d+)&gt;/g, '<span class="mention">@User_$1</span>');
+
+            // 2. Role Mentions
+            if (mentions && mentions.roles) {
+                mentions.roles.forEach(r => {
+                    const regex = new RegExp(`&lt;@&amp;${r.id}&gt;`, 'g');
+                    const colorStyle = r.color ? `background: ${r.color}20; color: ${r.color};` : '';
+                    html = html.replace(regex, `<span class="mention-role" style="${colorStyle}" title="${r.name}">@${r.name}</span>`);
+                });
+            }
+            html = html.replace(/&lt;@&amp;(\d+)&gt;/g, '<span class="mention-role">@Role</span>');
+
+            // 3. Channel Mentions
+            if (mentions && mentions.channels) {
+                mentions.channels.forEach(c => {
+                    const regex = new RegExp(`&lt;#${c.id}&gt;`, 'g');
+                    html = html.replace(regex, `<span class="mention-channel" title="${c.name}">${c.name}</span>`);
+                });
+            }
+            html = html.replace(/&lt;#(\d+)&gt;/g, '<span class="mention-channel">channel_$1</span>');
+
+            // 4. Formatting
+            html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            html = html.replace(/\*(.*?)\*/g, '<i>$1</i>');
+            html = html.replace(/__(.*?)__/g, '<u>$1</u>');
+            html = html.replace(/~~(.*?)~~/g, '<s>$1</s>');
+            html = html.replace(/`(.*?)`/g, '<code style="background:#2f3136; padding:2px 4px; border-radius:3px;">$1</code>');
+            html = html.replace(/\n/g, '<br>');
+
+            return html;
+        }
+
+        function renderEmbeds(embeds, mentions) {
+            return embeds.map(e => `
+                <div style="border-left: 4px solid ${e.hexColor || '#202225'}; background: #2f3136; padding: 8px 16px; border-radius: 4px; margin-top: 8px;">
+                    ${e.author ? `
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px; font-size:14px; font-weight:600; color:white;">
+                            ${e.author.iconURL ? `<img src="${e.author.iconURL}" style="width:24px; height:24px; border-radius:50%;">` : ''}
+                            <span>${e.author.name}</span>
+                        </div>
+                    `: ''}
+                    ${e.title ? `<div style="font-weight: 600; color: white; margin-bottom: 4px;">${e.title}</div>` : ''}
+                    ${e.description ? `<div style="color: #dcddde; font-size: 14px;">${formatDiscordContent(e.description, mentions)}</div>` : ''}
+                    ${e.fields ? `
+                        <div style="display:grid; grid-template-columns: ${e.fields.some(f => f.inline) ? 'repeat(auto-fill, minmax(150px, 1fr))' : '1fr'}; gap:8px; margin-top:8px;">
+                            ${e.fields.map(f => `
+                                <div>
+                                    <div style="color:#72767d; font-size:12px; font-weight:600; margin-bottom:2px;">${f.name}</div>
+                                    <div style="color:#dcddde; font-size:14px;">${formatDiscordContent(f.value, mentions)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    ${e.footer ? `
+                         <div style="display:flex; align-items:center; gap:8px; margin-top:8px; font-size:12px; color:#72767d;">
+                             ${e.footer.iconURL ? `<img src="${e.footer.iconURL}" style="width:20px; height:20px; border-radius:50%;">` : ''}
+                             <span>${e.footer.text} ${e.timestamp ? '• ' + new Date(e.timestamp).toLocaleString() : ''}</span>
+                         </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function renderComponents(components) {
+            return components.map(row => `
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+                    ${row.components.map(c => {
+                if (c.type === 2) { // Button
+                    let style = {
+                        1: 'background-color: #5865F2; color: white;', // Primary
+                        2: 'background-color: #4f545c; color: white;', // Secondary
+                        3: 'background-color: #3ba55c; color: white;', // Success
+                        4: 'background-color: #ed4245; color: white;', // Danger
+                        5: 'background-color: #4f545c; color: white;'  // Link (approx)
+                    }[c.style] || 'background-color: #5865F2; color: white;';
+
+                    return `
+                                <button disabled style="${style} border: none; padding: 6px 16px; border-radius: 3px; font-weight: 500; font-size: 14px; opacity: 0.9; cursor: not-allowed; display: flex; align-items: center; gap: 6px;">
+                                    ${c.emoji ? (c.emoji.id ? `<img src="https://cdn.discordapp.com/emojis/${c.emoji.id}.png" style="width:16px;height:16px;">` : c.emoji.name) : ''}
+                                    ${c.label || ''}
+                                    ${c.style === 5 ? '<i class="fas fa-external-link-alt" style="font-size: 10px; margin-left: 4px;"></i>' : ''}
+                                </button>
+                            `;
+                }
+                return ''; // Other components not supported yet
+            }).join('')}
+                </div>
+            `).join('');
+        }
+
+        function goBack() {
+            if (currentBotId && guildId) {
+                window.location.href = `/bot/${currentBotId}/guild/${guildId}#tickets`;
+            } else {
+                history.back();
+            }
+        }
+
+        // Initialize
+        loadUserInfo();
+        loadTicketDetails();
+    </script>
+</body>
+
+</html>
